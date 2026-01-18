@@ -1,12 +1,22 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
-  app.enableCors();
+  // 🔐 CORS com suporte a cookies
+  app.enableCors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
+    credentials: true,  // ✅ Permite cookies cross-origin
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+  
+  // 🍪 Parser de cookies (necessário para ler Set-Cookie headers)
+  app.use(cookieParser());
   
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
@@ -29,13 +39,19 @@ async function bootstrap() {
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'JWT',
+        description: 'Access Token (15 minutos)',
       },
-      'JWT',
+      'access-token',
     )
-    .addTag('auth', 'Authentication endpoints')
-    .addTag('clients', 'Client management endpoints')
-    .addTag('health', 'Health check endpoints')
-    .addTag('metrics', 'Metrics endpoints')
+    .addCookieAuth('Authentication', {
+      type: 'apiKey',
+      in: 'cookie',
+      description: 'Refresh Token (httpOnly, 7 dias)',
+    })
+    .addTag('🔐 Autenticação', 'Authentication endpoints')
+    .addTag('👥 Clientes', 'Client management endpoints')
+    .addTag('🏥 Health', 'Health check endpoints')
+    .addTag('📊 Métricas', 'Metrics endpoints')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
