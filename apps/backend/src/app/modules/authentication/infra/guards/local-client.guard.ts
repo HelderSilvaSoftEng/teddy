@@ -10,12 +10,12 @@ import type { ICurrentUser } from '../../domain/types';
 export class LocalClientAuthGuard extends AuthGuard('clients') {
   private readonly logger = new Logger(LocalClientAuthGuard.name);
 
-  override handleRequest(
+  override handleRequest<TUser extends ICurrentUser = ICurrentUser>(
     err: Error | null,
-    user: ICurrentUser | false,
+    user: TUser | false,
     info: unknown,
     context: ExecutionContext,
-  ): ICurrentUser {
+  ): TUser {
     // 1️⃣ Se houver erro, repassa
     if (err) {
       throw err;
@@ -28,11 +28,11 @@ export class LocalClientAuthGuard extends AuthGuard('clients') {
     }
 
     // 3️⃣ Sanitiza e retorna usuário
-    const sanitized: ICurrentUser = {
+    const sanitized: TUser = {
       id: String(user.id),
       email: String(user.email),
       name: String(user.name || user.email),
-    };
+    } as TUser;
 
     this.logger.log(`✅ Guard validado para: ${sanitized.email}`);
     return sanitized;

@@ -6,13 +6,13 @@ import type { ICurrentUser } from '../../domain/types';
 export class JwtAuthGuard extends AuthGuard('jwt') {
   private readonly logger = new Logger(JwtAuthGuard.name);
 
-  override handleRequest(
+  override handleRequest<TUser extends ICurrentUser = ICurrentUser>(
     err: Error | null,
-    user: ICurrentUser | false,
+    user: TUser | false,
     info: { name?: string; message?: string } | undefined,
     context: unknown,
     status?: number,
-  ): ICurrentUser {
+  ): TUser {
     if (err || !user) {
       if (info?.name === 'TokenExpiredError') {
         this.logger.warn('❌ JWT token expirado');
@@ -25,6 +25,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
 
     this.logger.debug(`✅ JWT válido para usuário: ${user.email}`);
-    return user as ICurrentUser;
+    return user as TUser;
   }
 }
