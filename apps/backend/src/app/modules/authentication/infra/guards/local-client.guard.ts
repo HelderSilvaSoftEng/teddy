@@ -10,12 +10,12 @@ import type { ICurrentUser } from '../../domain/types';
 export class LocalClientAuthGuard extends AuthGuard('clients') {
   private readonly logger = new Logger(LocalClientAuthGuard.name);
 
-  handleRequest<TUser = any>(
-    err: unknown,
-    user: any,
+  override handleRequest(
+    err: Error | null,
+    user: ICurrentUser | false,
     info: unknown,
     context: ExecutionContext,
-  ): TUser {
+  ): ICurrentUser {
     // 1️⃣ Se houver erro, repassa
     if (err) {
       throw err;
@@ -24,7 +24,7 @@ export class LocalClientAuthGuard extends AuthGuard('clients') {
     // 2️⃣ Se não houver usuário, erro
     if (!user) {
       this.logger.warn('❌ Tentativa de login sem credenciais válidas');
-      throw err;
+      throw new Error('Credenciais inválidas');
     }
 
     // 3️⃣ Sanitiza e retorna usuário
@@ -35,6 +35,6 @@ export class LocalClientAuthGuard extends AuthGuard('clients') {
     };
 
     this.logger.log(`✅ Guard validado para: ${sanitized.email}`);
-    return sanitized as unknown as TUser;
+    return sanitized;
   }
 }

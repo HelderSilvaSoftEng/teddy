@@ -4,6 +4,7 @@ import { Strategy } from 'passport-local';
 import { Inject } from '@nestjs/common';
 import type { IClientRepositoryPort } from '../../../clients/domain/ports/client.repository.port';
 import { CLIENT_REPOSITORY_TOKEN } from '../../../clients/domain/ports/client.repository.port';
+import type { ICurrentUser } from '../../domain/types';
 
 /**
  * LocalClientStrategy - Valida email + password
@@ -27,7 +28,7 @@ export class LocalClientStrategy extends PassportStrategy(Strategy, 'clients') {
    * Valida credenciais do cliente
    * Passport chama automaticamente com email e password do body
    */
-  async validate(email: string, password: string) {
+  async validate(email: string, password: string): Promise<ICurrentUser> {
     try {
       // 1️⃣ Buscar cliente pelo email
       const client = await this.clientRepository.findByEmail(email);
@@ -52,16 +53,19 @@ export class LocalClientStrategy extends PassportStrategy(Strategy, 'clients') {
       this.logger.log(`✅ Cliente autenticado: ${email}`);
 
       // 4️⃣ Retornar cliente para o guard
-      return {
+      const currentUser: ICurrentUser = {
         id: client.id,
         email: client.email,
         name: client.userName || client.email,
       };
-    } catch (error) {
+
+      return currentUser;
+    } catch (error: unknown) {
       if (error instanceof UnauthorizedException) {
         throw error;
       }
-      this.logger.error(`❌ Erro ao validar credenciais: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`❌ Erro ao validar credenciais: ${errorMessage}`);
       throw new UnauthorizedException('Erro ao validar credenciais');
     }
   }

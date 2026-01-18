@@ -1,27 +1,30 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import type { ICurrentUser } from '../../domain/types';
 
-/**
- * JwtAuthGuard - Guard para JWT Bearer token
- * 
- * Valida token JWT no header Authorization: Bearer <token>
- * Implementado via PassportStrategy(JwtStrategy)
- */
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
   private readonly logger = new Logger(JwtAuthGuard.name);
 
-  handleRequest(err: any, user: any, info: any, context: any, status?: any) {
+  override handleRequest(
+    err: Error | null,
+    user: ICurrentUser | false,
+    info: { name?: string; message?: string } | undefined,
+    context: unknown,
+    status?: number,
+  ): ICurrentUser {
     if (err || !user) {
       if (info?.name === 'TokenExpiredError') {
         this.logger.warn('❌ JWT token expirado');
+        throw new UnauthorizedException('Token expirado');
       } else if (info?.name === 'JsonWebTokenError') {
-        this.logger.warn(`❌ JWT inválido: ${info.message}`);
+        this.logger.warn(`❌ JWT inválido: ${info?.message || 'desconhecido'}`);
+        throw new UnauthorizedException('Token inválido');
       }
-      throw err || new Error('Não autorizado');
+      throw err || new UnauthorizedException('Não autorizado');
     }
 
     this.logger.debug(`✅ JWT válido para usuário: ${user.email}`);
-    return user;
+    return user as ICurrentUser;
   }
 }
