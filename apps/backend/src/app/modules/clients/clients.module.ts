@@ -62,7 +62,10 @@ import {
       useClass: ChangePasswordUseCase,
     },
   ],
-  exports: [ClientMapper],
+  exports: [
+    ClientMapper,
+    CLIENT_REPOSITORY_TOKEN,  // ← NOVO: Exportar para AuthenticationModule
+  ],
 })
 export class ClientsModule {}
 
