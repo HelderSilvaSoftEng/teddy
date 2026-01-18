@@ -7,7 +7,7 @@ declare module 'passport-jwt' {
   import { Strategy as PassportStrategy } from 'passport';
   import { Request } from 'express';
 
-  interface StrategyOptions {
+  export interface StrategyOptions {
     jwtFromRequest: (req: Request) => string | null;
     secretOrKey?: string | Buffer;
     secretOrPublicKey?: string | Buffer;
@@ -18,11 +18,11 @@ declare module 'passport-jwt' {
     passReqToCallback?: boolean;
   }
 
-  interface VerifiedCallback {
+  export interface VerifiedCallback {
     (err: Error | null, user?: any, info?: any): void;
   }
 
-  class Strategy extends PassportStrategy {
+  export class Strategy extends PassportStrategy {
     constructor(
       options: StrategyOptions,
       verify: (payload: any, done: VerifiedCallback) => void
@@ -30,7 +30,7 @@ declare module 'passport-jwt' {
     authenticate(req?: Request, options?: any): void;
   }
 
-  interface ExtractJwt {
+  export interface ExtractJwt {
     fromHeader(
       header_name: string
     ): (request: Request) => string | null;
@@ -42,7 +42,5 @@ declare module 'passport-jwt' {
     ): (request: Request) => string | null;
   }
 
-  const ExtractJwt: ExtractJwt;
-
-  export { Strategy, StrategyOptions, VerifiedCallback, ExtractJwt };
+  export const ExtractJwt: ExtractJwt;
 }
