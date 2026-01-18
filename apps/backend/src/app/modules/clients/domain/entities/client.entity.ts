@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
+import { createHash } from 'crypto';
 
 export enum ClientStatusEnum {
   ACTIVE = 'ACTIVE',
@@ -126,6 +127,32 @@ export class Client {
    */
   update(data: Partial<Client>): void {
     Object.assign(this, data);
+    this.updatedAt = new Date();
+  }
+
+  /**
+   * Hash de senha usando SHA256
+   * Lógica de domínio: transformar a senha em hash
+   */
+  static hashPassword(password: string): string {
+    return createHash('sha256').update(password).digest('hex');
+  }
+
+  /**
+   * Valida se a senha fornecida é válida
+   * Lógica de domínio: comparar senha com hash armazenado
+   */
+  isPasswordValid(plainPassword: string): boolean {
+    const hash = Client.hashPassword(plainPassword);
+    return hash === this.password;
+  }
+
+  /**
+   * Define uma nova senha (hasheada)
+   * Lógica de domínio: atualizar a senha com segurança
+   */
+  setPassword(plainPassword: string): void {
+    this.password = Client.hashPassword(plainPassword);
     this.updatedAt = new Date();
   }
 }

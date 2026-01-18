@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Query, Inject } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Param, Body, Query, Inject } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateClientDto } from '../dtos/create-client.dto';
 import { UpdateClientDto } from '../dtos/update-client.dto';
+import { ChangePasswordDto } from '../dtos/change-password.dto';
 import { ClientResponseDto } from '../dtos/client-response.dto';
 import type {
   ICreateClientPort,
@@ -9,6 +10,7 @@ import type {
   IFindAllClientsPort,
   IUpdateClientPort,
   IDeleteClientPort,
+  IChangePasswordPort,
 } from '../../presentation/ports';
 import {
   CREATE_CLIENT_PORT,
@@ -16,11 +18,12 @@ import {
   FIND_ALL_CLIENTS_PORT,
   UPDATE_CLIENT_PORT,
   DELETE_CLIENT_PORT,
+  CHANGE_PASSWORD_PORT,
 } from '../../presentation/ports';
 import { ClientMapper } from '../../infra/mappers/client.mapper';
 
 @ApiTags('clients')
-@Controller('clients')
+@Controller('v1/clients')
 export class ClientController {
   constructor(
     @Inject(CREATE_CLIENT_PORT)
@@ -33,6 +36,8 @@ export class ClientController {
     private readonly updateClientPort: IUpdateClientPort,
     @Inject(DELETE_CLIENT_PORT)
     private readonly deleteClientPort: IDeleteClientPort,
+    @Inject(CHANGE_PASSWORD_PORT)
+    private readonly changePasswordPort: IChangePasswordPort,
     private readonly clientMapper: ClientMapper,
   ) {}
 
@@ -87,6 +92,18 @@ export class ClientController {
   async remove(@Param('id') id: string): Promise<{ message: string }> {
     await this.deleteClientPort.execute(id);
     return { message: 'Cliente deletado com sucesso' };
+  }
+
+  @Patch(':id/password')
+  @ApiOperation({ summary: 'Alterar senha do cliente' })
+  @ApiResponse({ status: 200, description: 'Senha alterada com sucesso' })
+  @ApiResponse({ status: 400, description: 'Dados inválidos ou senha atual incorreta' })
+  @ApiResponse({ status: 404, description: 'Cliente não encontrado' })
+  async changePassword(
+    @Param('id') id: string,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
+    return this.changePasswordPort.execute(id, changePasswordDto);
   }
 }
 

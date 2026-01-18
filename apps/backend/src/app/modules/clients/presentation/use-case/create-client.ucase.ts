@@ -34,14 +34,13 @@ export class CreateClientUseCase {
       }
 
       // 2️⃣ Criar instância da entidade com dados do DTO
-      // Usar construtor da entidade para aplicar valores padrão
       const client = new Client({
         userName: createClientDto.userName,
         email: createClientDto.email,
-        password: createClientDto.password,
+        password: Client.hashPassword(createClientDto.password),
         personalId: createClientDto.personalId,
         mobile: createClientDto.mobile,
-        status: createClientDto.status || ClientStatusEnum.ACTIVE,
+        status: ClientStatusEnum.ACTIVE,
         accessCount: 0,
       });
 

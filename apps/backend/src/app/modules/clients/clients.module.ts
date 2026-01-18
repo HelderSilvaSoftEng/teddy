@@ -11,6 +11,7 @@ import {
   FindAllClientsUseCase,
   UpdateClientUseCase,
   DeleteClientUseCase,
+  ChangePasswordUseCase,
 } from './presentation/use-case';
 import {
   CREATE_CLIENT_PORT,
@@ -18,6 +19,7 @@ import {
   FIND_ALL_CLIENTS_PORT,
   UPDATE_CLIENT_PORT,
   DELETE_CLIENT_PORT,
+  CHANGE_PASSWORD_PORT,
 } from './presentation/ports';
 
 @Module({
@@ -30,6 +32,7 @@ import {
     FindAllClientsUseCase,
     UpdateClientUseCase,
     DeleteClientUseCase,
+    ChangePasswordUseCase,
     {
       provide: CLIENT_REPOSITORY_TOKEN,
       useClass: ClientRepository,
@@ -53,6 +56,10 @@ import {
     {
       provide: DELETE_CLIENT_PORT,
       useClass: DeleteClientUseCase,
+    },
+    {
+      provide: CHANGE_PASSWORD_PORT,
+      useClass: ChangePasswordUseCase,
     },
   ],
   exports: [ClientMapper],

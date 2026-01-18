@@ -8,6 +8,9 @@ async function bootstrap() {
   
   app.enableCors();
   
+  const globalPrefix = 'api';
+  app.setGlobalPrefix(globalPrefix);
+  
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -37,8 +40,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
 
-  const globalPrefix = 'api';
-  app.setGlobalPrefix(globalPrefix);
   const port = process.env.PORT || 3000;
   
   await app.listen(port);
