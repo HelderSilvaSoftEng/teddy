@@ -22,7 +22,7 @@ import {
 } from '../../presentation/ports';
 import { ClientMapper } from '../../infra/mappers/client.mapper';
 
-@ApiTags('clients')
+@ApiTags('👥 Clientes')
 @Controller('v1/clients')
 export class ClientController {
   constructor(

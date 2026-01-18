@@ -1,23 +1,13 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { randomUUID } from 'crypto';
 import type { ICurrentUser, TokenPayloadUser, LoginResponse } from '../../domain/types';
 import type { IClientRepositoryPort } from '../../../clients/domain/ports/client.repository.port';
 import { CLIENT_REPOSITORY_TOKEN } from '../../../clients/domain/ports/client.repository.port';
+import { Client } from '../../../clients/domain/entities/client.entity';
 
-/**
- * LoginUseCase - Gera tokens JWT e seta cookie com refresh token
- * 
- * Fluxo:
- * 1. Recebe cliente validado do guard
- * 2. Gera Access Token (15 min) com payload curto
- * 3. Gera Refresh Token (7 dias) com JTI único
- * 4. Hash o JTI com SHA256 e salva no BD
- * 5. Seta cookie httpOnly com refresh token
- * 6. Retorna response com access token no body
- */
 @Injectable()
 export class LoginUseCase {
   private readonly logger = new Logger(LoginUseCase.name);
@@ -56,7 +46,7 @@ export class LoginUseCase {
       this.logger.log(`✅ Access Token gerado: ${user.email}`);
 
       // 4️⃣ Gerar Refresh Token (7 dias) com JTI único
-      const jti = randomUUID();  // ID único para revogação
+      const jti = randomUUID();
       const refreshTokenTtl = this.configService.get('REFRESH_TOKEN_TTL', 604800); // 7 dias
 
       const refreshTokenPayload = {
@@ -72,8 +62,8 @@ export class LoginUseCase {
 
       this.logger.log(`✅ Refresh Token gerado: ${user.email}`);
 
-      // 5️⃣ Hash do JTI usando o método da entity
-      const hashedJti = client.constructor.hashPassword(jti);
+      // 5️⃣ Hash do JTI usando o método estático da entity
+      const hashedJti = Client.hashPassword(jti);
 
       // 6️⃣ Salvar refresh token hash no cliente
       client.refreshTokenHash = hashedJti;
@@ -83,28 +73,42 @@ export class LoginUseCase {
 
       this.logger.log(`✅ Refresh token hash salvo no BD: ${user.email}`);
 
-      // 7️⃣ Setar cookie httpOnly com refresh token
-      response.cookie('Authentication', refreshToken, {
-        httpOnly: true,        // 🔐 Não acessível por JavaScript
-        secure: true,          // 🔐 Apenas HTTPS (em produção)
-        sameSite: 'strict',    // 🔐 CSRF protection
+      // 7️⃣ Setar cookies httpOnly com tokens
+      const accessTokenExpires = new Date();
+      accessTokenExpires.setSeconds(accessTokenExpires.getSeconds() + (this.configService.get<number>('JWT_EXPIRATION') ?? 900));
+
+      const refreshTokenExpires = new Date(Date.now() + refreshTokenTtl * 1000);
+      const isProduction = this.configService.get('NODE_ENV') === 'production';
+
+      this.logger.log(`🍪 Setando cookie Authentication com expiração: ${accessTokenExpires}`);
+      
+      response.cookie('Authentication', accessToken, {
+        httpOnly: true,
+        secure: isProduction ? true : false,
+        sameSite: 'lax',
         path: '/',
-        maxAge: refreshTokenTtl * 1000,  // 7 dias em milisegundos
+        expires: accessTokenExpires,
       });
 
-      this.logger.log(`✅ Cookie httpOnly setado: ${user.email}`);
+      this.logger.log(`🍪 Setando cookie RefreshToken com expiração: ${refreshTokenExpires}`);
+      
+      response.cookie('RefreshToken', refreshToken, {
+        httpOnly: true,
+        secure: isProduction ? true : false,
+        sameSite: 'lax',
+        path: '/',
+        expires: refreshTokenExpires,
+      });
 
-      // 8️⃣ Retornar response com access token
-      const loginResponse: LoginResponse = {
+      this.logger.log(`✅ Cookies httpOnly setados: ${user.email}`);
+
+      // 8️⃣ Retornar response com access token + refresh token
+      return {
         user: user.name,
         email: user.email,
-        accessToken,  // 🔷 Enviado no body
-        // 🔷 Refresh token vem via Set-Cookie no header
+        accessToken: accessToken,
+        refreshToken: refreshToken,
       };
-
-      this.logger.log(`✅ Login concluído com sucesso: ${user.email}`);
-
-      return loginResponse;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`❌ Erro ao fazer login: ${errorMessage}`);

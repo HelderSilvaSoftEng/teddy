@@ -1,4 +1,5 @@
 import { Injectable, Logger, Inject, NotFoundException } from '@nestjs/common';
+import type { Response } from 'express';
 import type { ICurrentUser, LogoutResponse } from '../../domain/types';
 import type { IClientRepositoryPort } from '../../../clients/domain/ports/client.repository.port';
 import { CLIENT_REPOSITORY_TOKEN } from '../../../clients/domain/ports/client.repository.port';
@@ -21,7 +22,7 @@ export class LogoutUseCase {
     private readonly clientRepository: IClientRepositoryPort,
   ) {}
 
-  async execute(user: ICurrentUser): Promise<LogoutResponse> {
+  async execute(user: ICurrentUser, response: Response): Promise<LogoutResponse> {
     try {
       this.logger.log(`👋 Iniciando logout para: ${user.email}`);
 
@@ -38,6 +39,10 @@ export class LogoutUseCase {
 
       // 3️⃣ Salvar no BD
       await this.clientRepository.update(user.id, client);
+
+      // 4️⃣ Limpar cookies
+      response.clearCookie('Authentication', { path: '/' });
+      response.clearCookie('RefreshToken', { path: '/' });
 
       this.logger.log(`✅ Logout concluído: ${user.email}`);
 

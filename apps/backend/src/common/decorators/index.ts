@@ -1,1 +1,1 @@
-// Export decorators aqui quando criados
+export { Public } from './public.decorator';

@@ -1,13 +1,12 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
-  // 🔐 CORS com suporte a cookies
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3001',
     credentials: true,  // ✅ Permite cookies cross-origin
@@ -15,7 +14,6 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
   
-  // 🍪 Parser de cookies (necessário para ler Set-Cookie headers)
   app.use(cookieParser());
   
   const globalPrefix = 'api';
@@ -54,7 +52,12 @@ async function bootstrap() {
     .addTag('📊 Métricas', 'Metrics endpoints')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('docs', app, document, {
+    swaggerOptions: {
+      withCredentials: true, // ✅ Permite credenciais em requisições
+      persistAuthorization: true, // ✅ Mantém autenticação entre requisições
+    },
+  });
 
   const port = process.env.PORT || 3000;
   

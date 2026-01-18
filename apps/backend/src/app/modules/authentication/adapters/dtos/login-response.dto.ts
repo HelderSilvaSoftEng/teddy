@@ -9,4 +9,10 @@ export class LoginResponseDto {
 
   @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' })
   accessToken!: string;
+
+  @ApiProperty({ 
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    description: 'Refresh token - também é enviado em cookie httpOnly'
+  })
+  refreshToken!: string;
 }

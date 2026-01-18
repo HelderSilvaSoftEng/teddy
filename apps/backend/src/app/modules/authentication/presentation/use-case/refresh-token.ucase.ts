@@ -1,25 +1,13 @@
 import { Injectable, Logger, UnauthorizedException, Inject, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { randomUUID } from 'crypto';
 import type { RefreshTokenPayload, RefreshResponse } from '../../domain/types';
 import type { IClientRepositoryPort } from '../../../clients/domain/ports/client.repository.port';
 import { CLIENT_REPOSITORY_TOKEN } from '../../../clients/domain/ports/client.repository.port';
+import { Client } from '../../../clients/domain/entities/client.entity';
 
-/**
- * RefreshTokenUseCase - Rotaciona tokens JWT
- * 
- * Fluxo:
- * 1. Extrai e valida refresh token do cookie
- * 2. Valida payload (sub, jti, typ='refresh')
- * 3. Compara JTI hash com hash no BD
- * 4. Valida expiração
- * 5. Gera novo Access Token
- * 6. Rotaciona Refresh Token (novo JTI)
- * 7. Salva novo hash no BD
- * 8. Seta novo cookie
- */
 @Injectable()
 export class RefreshTokenUseCase {
   private readonly logger = new Logger(RefreshTokenUseCase.name);
@@ -45,7 +33,7 @@ export class RefreshTokenUseCase {
           secret: this.configService.get('REFRESH_TOKEN_SECRET'),
         }) as RefreshTokenPayload;
       } catch (error) {
-        this.logger.warn('❌ Refresh token inválido ou expirado');
+        this.logger.warn('❌ Refresh token inválido ou expirado', error);
         throw new UnauthorizedException('Refresh token inválido ou expirado');
       }
 
@@ -67,8 +55,7 @@ export class RefreshTokenUseCase {
         throw new UnauthorizedException('Refresh token não configurado');
       }
 
-      // Comparar JTI com o hash usando método da entity
-      const currentJtiHash = client.constructor.hashPassword(decoded.jti);
+      const currentJtiHash = Client.hashPassword(decoded.jti);
       if (currentJtiHash !== client.refreshTokenHash) {
         this.logger.warn(`❌ JTI hash não corresponde para cliente: ${client.id}`);
         throw new UnauthorizedException('Refresh token revogado');
@@ -113,7 +100,7 @@ export class RefreshTokenUseCase {
       });
 
       // 8️⃣ Hash do novo JTI
-      const newJtiHash = client.constructor.hashPassword(newJti);
+      const newJtiHash = Client.hashPassword(newJti);
 
       // 9️⃣ Salvar novo hash no BD
       client.refreshTokenHash = newJtiHash;
@@ -123,16 +110,29 @@ export class RefreshTokenUseCase {
 
       this.logger.log(`✅ Novo Refresh Token hash salvo`);
 
-      // 🔟 Setar novo cookie
-      response.cookie('Authentication', newRefreshToken, {
+      // 🔟 Setar novo Access Token no cookie + rotacionar Refresh Token
+      const accessTokenExpires = new Date();
+      accessTokenExpires.setSeconds(accessTokenExpires.getSeconds() + accessTokenTtl);
+      const refreshTokenExpires = new Date(Date.now() + refreshTokenTtl * 1000);
+      const isProduction = this.configService.get('NODE_ENV') === 'production';
+
+      response.cookie('Authentication', newAccessToken, {
         httpOnly: true,
-        secure: true,
-        sameSite: 'strict',
+        secure: isProduction ? true : false,
+        sameSite: 'lax',
         path: '/',
-        maxAge: refreshTokenTtl * 1000,
+        expires: accessTokenExpires,
       });
 
-      this.logger.log(`✅ Token rotacionado com sucesso`);
+      response.cookie('RefreshToken', newRefreshToken, {
+        httpOnly: true,
+        secure: isProduction ? true : false,
+        sameSite: 'lax',
+        path: '/',
+        expires: refreshTokenExpires,
+      });
+
+      this.logger.log(`✅ Tokens rotacionados com sucesso`);
 
       return {
         accessToken: newAccessToken,
