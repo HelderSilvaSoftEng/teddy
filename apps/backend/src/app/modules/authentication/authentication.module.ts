@@ -7,7 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { AuthController } from './adapters/controllers/auth.controller';
 
 // Use Cases
-import { LoginUseCase, RefreshTokenUseCase, LogoutUseCase } from './presentation/use-case';
+import { LoginUseCase, RefreshTokenUseCase, LogoutUseCase, RecoveryPasswordUseCase, ResetPasswordUseCase } from './presentation/use-case';
 
 // Strategies & Guards
 import { LocalClientStrategy, JwtStrategy } from './infra/strategies';
@@ -15,21 +15,9 @@ import { LocalClientStrategy, JwtStrategy } from './infra/strategies';
 // Clients module (para ClientRepository)
 import { ClientsModule } from '../clients/clients.module';
 
-/**
- * AuthenticationModule - Orquestra todo o sistema de autenticação
- * 
- * Responsabilidades:
- * ✅ JWT token generation (15 min access, 7 days refresh)
- * ✅ Passport local strategy (email + password)
- * ✅ Passport JWT strategy (Bearer token)
- * ✅ Login / Refresh / Logout / GetMe endpoints
- * ✅ Cookie management (httpOnly refresh token)
- * 
- * Dependências injetadas:
- * - ClientRepository (para validação de credenciais)
- * - JwtService (para geração de tokens)
- * - ConfigService (para segredos)
- */
+// Email module
+import { EmailModule } from '../../../common/services/email';
+
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
@@ -37,12 +25,13 @@ import { ClientsModule } from '../clients/clients.module';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),
         signOptions: {
-          expiresIn: configService.get('JWT_EXPIRATION', 900),  // 15 min
+          expiresIn: configService.get('JWT_EXPIRATION', 900),  // 1 hora
         },
       }),
       inject: [ConfigService],
     }),
-    ClientsModule,  // Para ClientRepository
+    ClientsModule,
+    EmailModule,
   ],
   controllers: [AuthController],
   providers: [
@@ -50,11 +39,13 @@ import { ClientsModule } from '../clients/clients.module';
     LoginUseCase,
     RefreshTokenUseCase,
     LogoutUseCase,
+    RecoveryPasswordUseCase,
+    ResetPasswordUseCase,
 
     // Strategies
     LocalClientStrategy,
     JwtStrategy,
   ],
-  exports: [JwtModule, PassportModule],
+  exports: [JwtModule, PassportModule, JwtStrategy],
 })
 export class AuthenticationModule {}

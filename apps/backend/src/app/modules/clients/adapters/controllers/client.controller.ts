@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Put, Patch, Delete, Param, Body, Query, Inject } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Patch, Delete, Param, Body, Query, Inject, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { CreateClientDto } from '../dtos/create-client.dto';
 import { UpdateClientDto } from '../dtos/update-client.dto';
 import { ChangePasswordDto } from '../dtos/change-password.dto';
 import { ClientResponseDto } from '../dtos/client-response.dto';
+import { FindClientByIdUseCase } from '../../presentation/use-case/find-client-by-id.ucase';
 import type {
   ICreateClientPort,
   IFindClientByIdPort,
@@ -21,8 +22,11 @@ import {
   CHANGE_PASSWORD_PORT,
 } from '../../presentation/ports';
 import { ClientMapper } from '../../infra/mappers/client.mapper';
+import { JwtAuthGuard } from '../../../../../common/guards/jwt-auth.guard';
 
 @ApiTags('👥 Clientes')
+@ApiBearerAuth('access-token')
+@UseGuards(JwtAuthGuard)
 @Controller('v1/clients')
 export class ClientController {
   constructor(
@@ -38,6 +42,7 @@ export class ClientController {
     private readonly deleteClientPort: IDeleteClientPort,
     @Inject(CHANGE_PASSWORD_PORT)
     private readonly changePasswordPort: IChangePasswordPort,
+    private readonly findClientByIdUseCase: FindClientByIdUseCase,
     private readonly clientMapper: ClientMapper,
   ) {}
 
@@ -69,7 +74,7 @@ export class ClientController {
   @ApiResponse({ status: 200, description: 'Detalhes do cliente', type: ClientResponseDto })
   @ApiResponse({ status: 404, description: 'Cliente não encontrado' })
   async findOne(@Param('id') id: string): Promise<ClientResponseDto> {
-    const client = await this.findClientByIdPort.execute(id);
+    const client = await this.findClientByIdUseCase.execute(id);
     return this.clientMapper.toResponseDto(client);
   }
 

@@ -31,10 +31,6 @@ export class FindClientByIdUseCase {
 
       this.logger.log(`👁️ Cliente acessado: ${id}`);
 
-      // 2️⃣ Incrementar contador de acessos (lógica de domínio)
-      client.incrementAccessCount();
-      await this.clientRepository.incrementAccessCount(id);
-
       return client;
     } catch (error: unknown) {
       const errorMessage =

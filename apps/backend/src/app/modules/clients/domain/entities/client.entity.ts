@@ -37,6 +37,12 @@ export class Client {
   @Column({ type: 'timestamp', nullable: true })
   refreshTokenExpires?: Date;
 
+  @Column({ type: 'varchar', nullable: true })
+  recoveryTokenHash?: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  recoveryTokenExpires?: Date;
+
   @CreateDateColumn()
   createdAt!: Date;
 

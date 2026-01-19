@@ -22,13 +22,19 @@ import { Public } from '../../../../../common/decorators/public.decorator';
 import { LoginUseCase } from '../../presentation/use-case/login.ucase';
 import { RefreshTokenUseCase } from '../../presentation/use-case/refresh-token.ucase';
 import { LogoutUseCase } from '../../presentation/use-case/logout.ucase';
+import { RecoveryPasswordUseCase } from '../../presentation/use-case/recovery-password.ucase';
+import { ResetPasswordUseCase } from '../../presentation/use-case/reset-password.ucase';
 import { LocalClientAuthGuard } from '../../infra/guards/local-client.guard';
-import { JwtAuthGuard } from '../../infra/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../../../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../infra/decorators/current-user.decorator';
 import { LoginDto } from '../../adapters/dtos/login.dto';
 import { LoginResponseDto } from '../../adapters/dtos/login-response.dto';
 import { RefreshResponseDto } from '../../adapters/dtos/refresh-response.dto';
 import { LogoutResponseDto } from '../../adapters/dtos/logout-response.dto';
+import { RecoveryPasswordDto } from '../../adapters/dtos/recovery-password.dto';
+import { RecoveryPasswordResponseDto } from '../../adapters/dtos/recovery-password-response.dto';
+import { ResetPasswordDto } from '../../adapters/dtos/reset-password.dto';
+import { ResetPasswordResponseDto } from '../../adapters/dtos/reset-password-response.dto';
 import type { ICurrentUser } from '../../domain/types';
 
 @Controller('auth')
@@ -40,6 +46,8 @@ export class AuthController {
     private readonly loginUseCase: LoginUseCase,
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
     private readonly logoutUseCase: LogoutUseCase,
+    private readonly recoveryPasswordUseCase: RecoveryPasswordUseCase,
+    private readonly resetPasswordUseCase: ResetPasswordUseCase,
   ) {}
 
   @Post('login')
@@ -173,5 +181,67 @@ export class AuthController {
   async getMe(@CurrentUser() user: ICurrentUser): Promise<ICurrentUser> {
     this.logger.debug(`📍 GET /auth/me chamado para: ${user.email}`);
     return user;
+  }
+
+  @Post('recovery-password')
+  @Public()
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Solicitar recuperação de senha',
+    description: 'Envia link de recuperação para o email do usuário. Link válido por 30 minutos.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Email enviado com sucesso',
+    type: RecoveryPasswordResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Email inválido',
+  })
+  async recoveryPassword(@Body() dto: RecoveryPasswordDto): Promise<RecoveryPasswordResponseDto> {
+    try {
+      this.logger.debug(`POST /auth/recovery-password chamado para: ${dto.email}`);
+      const result = await this.recoveryPasswordUseCase.execute(dto.email);
+      return result;
+    } catch (error) {
+      this.logger.error(
+        `❌ Erro em recovery-password: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      throw error;
+    }
+  }
+
+  @Post('reset-password')
+  @Public()
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Resetar senha com token',
+    description: 'Cria uma nova senha usando o token de recuperação enviado por email.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Senha alterada com sucesso',
+    type: ResetPasswordResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Token inválido ou expirado',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Dados inválidos',
+  })
+  async resetPassword(@Body() dto: ResetPasswordDto): Promise<ResetPasswordResponseDto> {
+    try {
+      this.logger.debug('POST /auth/reset-password chamado');
+      const result = await this.resetPasswordUseCase.execute(dto.token, dto.newPassword);
+      return result;
+    } catch (error) {
+      this.logger.error(
+        `❌ Erro em reset-password: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      throw error;
+    }
   }
 }

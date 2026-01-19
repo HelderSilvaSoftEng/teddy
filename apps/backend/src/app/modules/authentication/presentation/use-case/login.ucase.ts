@@ -36,14 +36,14 @@ export class LoginUseCase {
         name: user.name,
       };
 
-      // 3️⃣ Gerar Access Token (15 minutos)
-      const accessTokenTtl = this.configService.get('JWT_EXPIRATION', 900); // 15 min
+      // 3️⃣ Gerar Access Token
+      const accessTokenTtl = this.configService.get<number>('JWT_EXPIRATION') ?? 3600; // 1 hora default
       const accessToken = this.jwtService.sign(accessTokenPayload, {
-        expiresIn: accessTokenTtl,
-        secret: this.configService.get('JWT_SECRET'),
+        expiresIn: `${accessTokenTtl}s`, // ✅ Converter para string com 's' (segundos)
+        secret: this.configService.get<string>('JWT_SECRET'),
       });
 
-      this.logger.log(`✅ Access Token gerado: ${user.email}`);
+      this.logger.log(`✅ Access Token gerado com TTL ${accessTokenTtl}s: ${user.email}`);
 
       // 4️⃣ Gerar Refresh Token (7 dias) com JTI único
       const jti = randomUUID();
@@ -56,22 +56,28 @@ export class LoginUseCase {
       };
 
       const refreshToken = this.jwtService.sign(refreshTokenPayload, {
-        expiresIn: refreshTokenTtl,
-        secret: this.configService.get('REFRESH_TOKEN_SECRET'),
+        expiresIn: `${refreshTokenTtl}s`, // ✅ Converter para string com 's' (segundos)
+        secret: this.configService.get<string>('REFRESH_TOKEN_SECRET') ?? this.configService.get<string>('JWT_SECRET'),
       });
 
-      this.logger.log(`✅ Refresh Token gerado: ${user.email}`);
+      this.logger.log(`✅ Refresh Token gerado com TTL ${refreshTokenTtl}s: ${user.email}`);
 
       // 5️⃣ Hash do JTI usando o método estático da entity
       const hashedJti = Client.hashPassword(jti);
 
-      // 6️⃣ Salvar refresh token hash no cliente
+      // 6️⃣ Incrementar contador de acessos (login count)
+      client.incrementAccessCount();
+
+      // 7️⃣ Salvar refresh token hash no cliente
       client.refreshTokenHash = hashedJti;
       client.refreshTokenExpires = new Date(Date.now() + refreshTokenTtl * 1000);
 
       await this.clientRepository.update(user.id, client);
 
-      this.logger.log(`✅ Refresh token hash salvo no BD: ${user.email}`);
+      // 8️⃣ Incrementar contador de acessos no repositório (SQL)
+      await this.clientRepository.incrementAccessCount(user.id);
+
+      this.logger.log(`✅ Refresh token hash e contador de acessos atualizados no BD: ${user.email}`);
 
       // 7️⃣ Setar cookies httpOnly com tokens
       const accessTokenExpires = new Date();

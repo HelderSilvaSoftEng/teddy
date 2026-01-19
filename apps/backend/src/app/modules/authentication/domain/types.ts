@@ -15,6 +15,14 @@ export interface RefreshTokenPayload {
   exp?: number;
 }
 
+export interface RecoveryTokenPayload {
+  sub: string;          // ClientId
+  email: string;
+  type: 'recovery';
+  iat?: number;
+  exp?: number;
+}
+
 
 export interface ICurrentUser {
   id: string;

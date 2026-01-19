@@ -37,15 +37,10 @@ async function bootstrap() {
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'JWT',
-        description: 'Access Token (15 minutos)',
+        description: 'Access Token (1 hora)',
       },
       'access-token',
     )
-    .addCookieAuth('Authentication', {
-      type: 'apiKey',
-      in: 'cookie',
-      description: 'Refresh Token (httpOnly, 7 dias)',
-    })
     .addTag('🔐 Autenticação', 'Authentication endpoints')
     .addTag('👥 Clientes', 'Client management endpoints')
     .addTag('🏥 Health', 'Health check endpoints')

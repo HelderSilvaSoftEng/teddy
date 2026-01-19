@@ -1,1 +1,1 @@
-// Export guards aqui quando criados
+export * from './jwt-auth.guard';
