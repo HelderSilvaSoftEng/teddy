@@ -3,9 +3,13 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app/app.module';
+import { LoggerService } from './common/services/logger';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const loggerService = new LoggerService();
+  const app = await NestFactory.create(AppModule, {
+    logger: false, // Desabilita o logger padrão do NestJS
+  });
   
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3001',
@@ -57,12 +61,8 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   
   await app.listen(port);
-  Logger.log(
-    `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`,
-  );
-  Logger.log(
-    `📚 Swagger documentation: http://localhost:${port}/docs`,
-  );
+  loggerService.info(`🚀 Application is running on: http://localhost:${port}/${globalPrefix}`);
+  loggerService.info(`📚 Swagger documentation: http://localhost:${port}/docs`);
 }
 
 bootstrap();

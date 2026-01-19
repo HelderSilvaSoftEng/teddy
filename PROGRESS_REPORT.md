@@ -75,10 +75,10 @@
 - [x] **Decorators** - @Public(), @CurrentUser()
 - [x] **Password hashing** - SHA256 (crypto)
 - [x] **CORS** - Configurado com credentials: true
+- [x] **Logs estruturados** - Pino com JSON format + pino-pretty (dev)
 
 #### ⏳ Pendente
 
-- [ ] **Logs estruturados** - Implementar Winston ou Pino (JSON format)
 - [ ] **Healthcheck** - `GET /healthz` endpoint
 - [ ] **Metrics** - `GET /metrics` endpoint (Prometheus format)
 - [ ] **Docker** - Dockerfile + docker-compose.yml isolado
@@ -470,12 +470,13 @@ CORS_ORIGIN=http://localhost:5173
 ```
 Autenticação Backend:     ██████████ 100%
 CRUD Clientes:           ██████████ 100%
+Logs Estruturados:       ██████████ 100%
 Frontend:                ░░░░░░░░░░ 0%
 DevOps/Docker:           ░░░░░░░░░░ 0%
 Testes:                  ░░░░░░░░░░ 0%
 Observabilidade:         ░░░░░░░░░░ 0%
 ─────────────────────────────────────
-TOTAL:                   ██████░░░░ 60%
+TOTAL:                   ███████░░░ 65%
 ```
 
 ---
