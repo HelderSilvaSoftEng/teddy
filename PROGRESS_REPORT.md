@@ -18,35 +18,36 @@
 - [x] Recuperação de senha (token-based recovery + reset)
 - [ ] 2FA (diferencial)
 
-### CRUD de Clientes
+### CRUD de Usuários
 
 - [x] Estrutura de repositório (Hexagonal)
-- [x] Entity Client criada
-- [x] DTOs criados (Login, Create, Update)
-- [x] Endpoint `POST /api/v1/clients` (criar cliente - protegido)
-- [x] Endpoint `GET /api/v1/clients` (listar clientes - protegido)
-- [x] Endpoint `GET /api/v1/clients/:id` (detalhe + contador - protegido)
-- [x] Endpoint `PUT /api/v1/clients/:id` (atualizar - protegido)
-- [x] Endpoint `DELETE /api/v1/clients/:id` (soft delete - protegido)
+- [x] Entity User criada
+- [x] DTOs criados (Create, Update, ChangePassword)
+- [x] Endpoint `POST /api/v1/users` (criar usuário - protegido)
+- [x] Endpoint `GET /api/v1/users` (listar usuários - protegido)
+- [x] Endpoint `GET /api/v1/users/:id` (detalhe - protegido)
+- [x] Endpoint `PUT /api/v1/users/:id` (atualizar - protegido)
+- [x] Endpoint `DELETE /api/v1/users/:id` (soft delete - protegido)
+- [x] Endpoint `PATCH /api/v1/users/:id/password` (alterar senha - protegido)
 - [x] Soft delete implementado na migration
 
 ### Dashboard/Admin
 
-- [ ] Página Dashboard com cards (total clientes, etc)
-- [ ] Gráfico de clientes por período
-- [ ] Lista de últimos clientes
+- [ ] Página Dashboard com cards (total usuários, etc)
+- [ ] Gráfico de usuários por período
+- [ ] Lista de últimos usuários
 - [ ] Autenticação no frontend
 
 ### Contador de Acessos
 
-- [x] Campo `accessCount` na tabela `clients`
+- [x] Campo `accessCount` na tabela `users`
 - [x] Incrementar contador ao fazer login (`POST /api/auth/login`)
-- [x] Exibir contador no detalhe do cliente
+- [x] Exibir contador no detalhe do usuário
 
 ### Auditoria & Timestamps
 
-- [x] `createdAt` na Entity Client
-- [x] `updatedAt` na Entity Client
+- [x] `createdAt` na Entity User
+- [x] `updatedAt` na Entity User
 - [x] `deletedAt` para soft delete
 - [ ] Tabela de auditoria separada (logs de alterações)
 - [ ] Registro de quem criou/alterou
@@ -66,7 +67,7 @@
 
 #### ✅ Implementado
 
-- [x] **NestJS modular** - Estrutura em módulos (auth, clients, common)
+- [x] **NestJS modular** - Estrutura em módulos (auth, users, customers, common)
 - [x] **TypeORM + PostgreSQL** - Banco conectado e funcionando
 - [x] **JWT autenticação** - Passport.js + JwtStrategy implementado
 - [x] **Validação** - class-validator nos DTOs
