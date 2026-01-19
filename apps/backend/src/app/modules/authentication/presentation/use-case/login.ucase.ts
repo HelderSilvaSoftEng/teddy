@@ -4,9 +4,9 @@ import { ConfigService } from '@nestjs/config';
 import type { Response } from 'express';
 import { randomUUID } from 'crypto';
 import type { ICurrentUser, TokenPayloadUser, LoginResponse } from '../../domain/types';
-import type { IClientRepositoryPort } from '../../../clients/domain/ports/client.repository.port';
-import { CLIENT_REPOSITORY_TOKEN } from '../../../clients/domain/ports/client.repository.port';
-import { Client } from '../../../clients/domain/entities/client.entity';
+import type { IUserRepositoryPort } from '../../../users/domain/ports/user.repository.port';
+import { USER_REPOSITORY_TOKEN } from '../../../users/domain/ports/user.repository.port';
+import { User } from "../../../users/domain/entities/user.entity";
 
 @Injectable()
 export class LoginUseCase {
@@ -15,8 +15,8 @@ export class LoginUseCase {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    @Inject(CLIENT_REPOSITORY_TOKEN)
-    private readonly clientRepository: IClientRepositoryPort,
+    @Inject(USER_REPOSITORY_TOKEN)
+    private readonly userRepository: IUserRepositoryPort,
   ) {}
 
   async execute(user: ICurrentUser, response: Response): Promise<LoginResponse> {
@@ -24,7 +24,7 @@ export class LoginUseCase {
       this.logger.log(`🔐 Iniciando login para: ${user.email}`);
 
       // 1️⃣ Buscar cliente no BD para ter dados atualizados
-      const client = await this.clientRepository.findById(user.id);
+      const user = await this.userRepository.findById(user.id);
       if (!client) {
         throw new Error('Cliente não encontrado');
       }
@@ -63,19 +63,19 @@ export class LoginUseCase {
       this.logger.log(`✅ Refresh Token gerado com TTL ${refreshTokenTtl}s: ${user.email}`);
 
       // 5️⃣ Hash do JTI usando o método estático da entity
-      const hashedJti = Client.hashPassword(jti);
+      const hashedJti = user.hashPassword(jti);
 
       // 6️⃣ Incrementar contador de acessos (login count)
-      client.incrementAccessCount();
+      user.incrementAccessCount();
 
       // 7️⃣ Salvar refresh token hash no cliente
-      client.refreshTokenHash = hashedJti;
-      client.refreshTokenExpires = new Date(Date.now() + refreshTokenTtl * 1000);
+      user.refreshTokenHash = hashedJti;
+      user.refreshTokenExpires = new Date(Date.now() + refreshTokenTtl * 1000);
 
-      await this.clientRepository.update(user.id, client);
+      await this.userRepository.update(user.id, client);
 
       // 8️⃣ Incrementar contador de acessos no repositório (SQL)
-      await this.clientRepository.incrementAccessCount(user.id);
+      await this.userRepository.incrementAccessCount(user.id);
 
       this.logger.log(`✅ Refresh token hash e contador de acessos atualizados no BD: ${user.email}`);
 

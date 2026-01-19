@@ -1,0 +1,44 @@
+[dotenv@17.2.3] injecting env (24) from .env -- tip: ÔÜÖ´©Å  write to custom object with { processEnv: myObject }
+[95m[Nest] 19072  - [39m19/01/2026, 15:09:56 [95m  DEBUG[39m [38;5;3m[TypeOrmConfig] [39m[95mDatabase Config: {"host":"localhost","port":5432,"database":"teddy_db","synchronize":true}[39m
+[32m[Nest] 19072  - [39m19/01/2026, 15:09:57 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +534ms[39m
+[32m[Nest] 19072  - [39m19/01/2026, 15:09:57 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +51ms[39m
+[32m[Nest] 19072  - [39m19/01/2026, 15:09:57 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDatabaseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 19072  - [39m19/01/2026, 15:09:57 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 19072  - [39m19/01/2026, 15:09:57 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPassportModule dependencies initialized[39m[38;5;3m +0ms[39m
+[Nest] 19072  - 19/01/2026, 15:09:57   ERROR [ExceptionHandler] UnknownDependenciesException [Error]: Nest can't resolve dependencies of the CreateCustomerUseCase (?). Please make sure that the argument dependency at index [0] is available in the current context.
+
+Potential solutions:
+- The dependency at index [0] appears to be undefined at runtime
+- This commonly occurs when using 'import type' instead of 'import' for injectable classes
+- Check your imports and change:
+  ÔØî import type { SomeService } from './some.service';
+  Ô£à import { SomeService } from './some.service';
+- Ensure the imported class is decorated with @Injectable() or is a valid provider
+- If using dynamic imports, ensure the class is available at runtime, not just for type checking
+
+For more common dependency resolution issues, see: https://docs.nestjs.com/faq/common-errors
+    at Injector.lookupComponentInParentModules (C:\Projects\Desafio\teddy-challenger\node_modules\.pnpm\@nestjs+core@11.1.12_@nestj_1cdaaea330b9de6887451315b701b0e9\node_modules\@nestjs\core\injector\injector.js:290:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async resolveParam (C:\Projects\Desafio\teddy-challenger\node_modules\.pnpm\@nestjs+core@11.1.12_@nestj_1cdaaea330b9de6887451315b701b0e9\node_modules\@nestjs\core\injector\injector.js:140:38)
+    at async Promise.all (index 0)
+    at async Injector.resolveConstructorParams (C:\Projects\Desafio\teddy-challenger\node_modules\.pnpm\@nestjs+core@11.1.12_@nestj_1cdaaea330b9de6887451315b701b0e9\node_modules\@nestjs\core\injector\injector.js:169:27)
+    at async Injector.loadInstance (C:\Projects\Desafio\teddy-challenger\node_modules\.pnpm\@nestjs+core@11.1.12_@nestj_1cdaaea330b9de6887451315b701b0e9\node_modules\@nestjs\core\injector\injector.js:75:13)
+    at async Injector.loadProvider (C:\Projects\Desafio\teddy-challenger\node_modules\.pnpm\@nestjs+core@11.1.12_@nestj_1cdaaea330b9de6887451315b701b0e9\node_modules\@nestjs\core\injector\injector.js:103:9)
+    at async C:\Projects\Desafio\teddy-challenger\node_modules\.pnpm\@nestjs+core@11.1.12_@nestj_1cdaaea330b9de6887451315b701b0e9\node_modules\@nestjs\core\injector\instance-loader.js:56:13
+    at async Promise.all (index 4)
+    at async InstanceLoader.createInstancesOfProviders (C:\Projects\Desafio\teddy-challenger\node_modules\.pnpm\@nestjs+core@11.1.12_@nestj_1cdaaea330b9de6887451315b701b0e9\node_modules\@nestjs\core\injector\instance-loader.js:55:9) {
+  type: 'CreateCustomerUseCase',
+  context: {
+    index: 0,
+    dependencies: [
+      [Function: Object]
+    ],
+    name: [Function: Object]
+  },
+  metadata: {
+    id: 'ffc931af19f92dae171fa'
+  },
+  moduleRef: {
+    id: 'f12dda2f9fe885630cd94'
+  }
+}

@@ -24,7 +24,7 @@ import { RefreshTokenUseCase } from '../../presentation/use-case/refresh-token.u
 import { LogoutUseCase } from '../../presentation/use-case/logout.ucase';
 import { RecoveryPasswordUseCase } from '../../presentation/use-case/recovery-password.ucase';
 import { ResetPasswordUseCase } from '../../presentation/use-case/reset-password.ucase';
-import { LocalClientAuthGuard } from '../../infra/guards/local-client.guard';
+import { LocalUserAuthGuard } from '../../infra/guards/local-user.guard';
 import { JwtAuthGuard } from '../../../../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../infra/decorators/current-user.decorator';
 import { LoginDto } from '../../adapters/dtos/login.dto';
@@ -53,7 +53,7 @@ export class AuthController {
   @Post('login')
   @Public()
   @HttpCode(200)
-  @UseGuards(LocalClientAuthGuard)
+  @UseGuards(LocalUserAuthGuard)
   @ApiOperation({
     summary: 'Fazer login',
     description:

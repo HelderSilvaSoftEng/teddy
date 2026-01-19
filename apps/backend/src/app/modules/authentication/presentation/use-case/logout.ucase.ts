@@ -1,8 +1,8 @@
 import { Injectable, Logger, Inject, NotFoundException } from '@nestjs/common';
 import type { Response } from 'express';
 import type { ICurrentUser, LogoutResponse } from '../../domain/types';
-import type { IClientRepositoryPort } from '../../../clients/domain/ports/client.repository.port';
-import { CLIENT_REPOSITORY_TOKEN } from '../../../clients/domain/ports/client.repository.port';
+import type { IUserRepositoryPort } from '../../../users/domain/ports/user.repository.port';
+import { USER_REPOSITORY_TOKEN } from '../../../users/domain/ports/user.repository.port';
 
 /**
  * LogoutUseCase - Invalida refresh token
@@ -18,8 +18,8 @@ export class LogoutUseCase {
   private readonly logger = new Logger(LogoutUseCase.name);
 
   constructor(
-    @Inject(CLIENT_REPOSITORY_TOKEN)
-    private readonly clientRepository: IClientRepositoryPort,
+    @Inject(USER_REPOSITORY_TOKEN)
+    private readonly userRepository: IUserRepositoryPort,
   ) {}
 
   async execute(user: ICurrentUser, response: Response): Promise<LogoutResponse> {
@@ -27,18 +27,18 @@ export class LogoutUseCase {
       this.logger.log(`👋 Iniciando logout para: ${user.email}`);
 
       // 1️⃣ Buscar cliente
-      const client = await this.clientRepository.findById(user.id);
+      const user = await this.userRepository.findById(user.id);
       if (!client) {
         throw new NotFoundException('Cliente não encontrado');
       }
 
       // 2️⃣ Zerar refresh token no cliente
-      client.refreshTokenHash = undefined;
-      client.refreshTokenExpires = undefined;
-      client.updatedAt = new Date();
+      user.refreshTokenHash = undefined;
+      user.refreshTokenExpires = undefined;
+      user.updatedAt = new Date();
 
       // 3️⃣ Salvar no BD
-      await this.clientRepository.update(user.id, client);
+      await this.userRepository.update(user.id, client);
 
       // 4️⃣ Limpar cookies
       response.clearCookie('Authentication', { path: '/' });

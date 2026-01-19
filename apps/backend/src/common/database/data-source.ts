@@ -4,7 +4,7 @@ import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import dotenv from 'dotenv';
 import path from 'path';
-import { Client } from '../../app/modules/clients/domain/entities/client.entity';
+import { User } from '../../app/modules/users/domain/entities/user.entity';
 
 dotenv.config();
 
@@ -17,7 +17,7 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_NAME || 'teddy_db',
-  entities: [Client],
+  entities: [User],
   migrations: [path.join(__dirname, 'migrations/*{.ts,.js}')],
   subscribers: [],
   synchronize: false,

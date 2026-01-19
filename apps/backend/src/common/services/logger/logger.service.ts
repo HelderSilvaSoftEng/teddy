@@ -1,127 +1,188 @@
-import { Injectable } from '@nestjs/common';
+import { ConsoleLogger, Injectable } from '@nestjs/common';
+import pino, { Logger as PinoLogger, LoggerOptions } from 'pino';
+import pretty from 'pino-pretty';
 
-const colors = {
-  reset: '\x1b[0m',
-  red: '\x1b[31m',
-  green: '\x1b[32m',
-  yellow: '\x1b[33m',
-  blue: '\x1b[34m',
-  cyan: '\x1b[36m',
-  gray: '\x1b[90m',
-};
-
-/**
- * Custom Logger Service - Logs estruturados com formatação bonita
- * JSON em production, colorido em development
- */
 @Injectable()
-export class LoggerService {
-  private formatTimestamp(): string {
-    return new Date().toLocaleTimeString('pt-BR');
-  }
+export class LoggerService extends ConsoleLogger {
+  private pinoLogger: PinoLogger;
 
-  private isDevelopment(): boolean {
-    return process.env.NODE_ENV !== 'production';
+  constructor(context?: string) {
+    super(context || 'App');
+    this.pinoLogger = this.createPinoLogger();
   }
 
   /**
-   * Log de informação
+   * Criar instância do Pino com configuração ambiente-específica
    */
-  info(message: string, context?: Record<string, any>): void {
-    if (this.isDevelopment()) {
-      console.log(
-        `${colors.blue}[${this.formatTimestamp()}]${colors.reset} ${colors.green}ℹ${colors.reset}  ${message}`,
-        context || '',
-      );
+  private createPinoLogger(): PinoLogger {
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+    const logLevel = process.env.LOG_LEVEL || (isDevelopment ? 'debug' : 'info');
+
+    const options: LoggerOptions = {
+      level: logLevel,
+      timestamp: pino.stdTimeFunctions.isoTime,
+      formatters: {
+        level: (label) => ({ level: label.toUpperCase() }),
+        bindings: () => ({}),
+      },
+      serializers: {
+        req: (req) => ({
+          method: req.method,
+          url: req.url,
+          headers: req.headers,
+        }),
+        res: (res) => ({
+          statusCode: res.statusCode,
+          headers: res.getHeaders?.(),
+        }),
+        err: pino.stdSerializers.err,
+      },
+    };
+
+    // Em development: usar pino-pretty para formatação legível
+    if (isDevelopment) {
+      const prettyStream = pretty({
+        colorize: true,
+        singleLine: false,
+        translateTime: 'SYS:standard',
+        ignore: 'hostname,pid',
+        customPrettifiers: {
+          time: (inputData: string | object) => `🕐 ${inputData}`,
+          level: (inputData: string | object) => {
+            const level = String(inputData).toUpperCase();
+            const levels: Record<string, string> = {
+              'TRACE': '🔍 TRACE',
+              'DEBUG': '🔧 DEBUG',
+              'INFO': 'ℹ️  INFO',
+              'WARN': '⚠️  WARN',
+              'ERROR': '❌ ERROR',
+              'FATAL': '🔴 FATAL',
+            };
+            return levels[level] || level;
+          },
+        },
+      });
+
+      return pino(options, prettyStream);
+    }
+
+    // Em production: JSON estruturado
+    return pino(options);
+  }
+
+  /**
+   * Override log() - INFO messages
+   */
+  override log(message: string, context?: string): void {
+    this.pinoLogger.info(
+      { 
+        context: context || this.context,
+      },
+      message,
+    );
+  }
+
+  /**
+   * Override debug() - DEBUG messages
+   */
+  override debug(message: string, context?: string): void {
+    this.pinoLogger.debug(
+      { 
+        context: context || this.context,
+      },
+      message,
+    );
+  }
+
+  /**
+   * Override warn() - WARN messages
+   */
+  override warn(message: string, context?: string): void {
+    this.pinoLogger.warn(
+      { 
+        context: context || this.context,
+      },
+      message,
+    );
+  }
+
+  /**
+   * Override error() - ERROR messages
+   */
+  override error(message: string, trace?: string, context?: string): void {
+    this.pinoLogger.error(
+      { 
+        context: context || this.context,
+        trace,
+      },
+      message,
+    );
+  }
+
+  /**
+   * Override fatal() - FATAL messages
+   */
+  override fatal(message: string, trace?: string, context?: string): void {
+    this.pinoLogger.fatal(
+      { 
+        context: context || this.context,
+        trace,
+      },
+      message,
+    );
+  }
+
+  /**
+   * 📊 Log com métrica de performance
+   */
+  performance(message: string, durationMs: number, context?: Record<string, any>): void {
+    const logLevel = durationMs > 1000 ? 'warn' : 'info';
+    const icon = durationMs > 1000 ? '🐢' : '⚡';
+
+    const perfContext = {
+      duration_ms: durationMs,
+      ...context,
+    };
+
+    if (logLevel === 'warn') {
+      this.pinoLogger.warn(perfContext, `${icon} ${message}`);
     } else {
-      console.log(JSON.stringify({ level: 'info', timestamp: new Date().toISOString(), message, ...context }));
+      this.pinoLogger.info(perfContext, `${icon} ${message}`);
     }
   }
 
   /**
-   * Log de debug
+   * 🚀 Log estruturado com rastreamento de requisição
    */
-  debug(message: string, context?: Record<string, any>): void {
-    if (process.env.LOG_LEVEL === 'debug') {
-      if (this.isDevelopment()) {
-        console.log(
-          `${colors.blue}[${this.formatTimestamp()}]${colors.reset} ${colors.gray}⚙${colors.reset}  ${message}`,
-          context || '',
-        );
-      } else {
-        console.log(JSON.stringify({ level: 'debug', timestamp: new Date().toISOString(), message, ...context }));
-      }
-    }
-  }
+  httpRequest(
+    method: string,
+    path: string,
+    statusCode: number,
+    durationMs: number,
+    context?: Record<string, any>,
+  ): void {
+    const isError = statusCode >= 400;
+    const icon = statusCode >= 500 ? '🔴' : statusCode >= 400 ? '⚠️' : '✅';
 
-  /**
-   * Log de aviso
-   */
-  warn(message: string, context?: Record<string, any>): void {
-    if (this.isDevelopment()) {
-      console.warn(
-        `${colors.blue}[${this.formatTimestamp()}]${colors.reset} ${colors.yellow}⚠${colors.reset}  ${message}`,
-        context || '',
-      );
+    const reqContext = {
+      method,
+      path,
+      status: statusCode,
+      duration_ms: durationMs,
+      ...context,
+    };
+
+    if (isError) {
+      this.pinoLogger.warn(reqContext, `${icon} HTTP ${method} ${path} → ${statusCode}`);
     } else {
-      console.warn(JSON.stringify({ level: 'warn', timestamp: new Date().toISOString(), message, ...context }));
+      this.pinoLogger.info(reqContext, `${icon} HTTP ${method} ${path} → ${statusCode}`);
     }
   }
 
   /**
-   * Log de erro
+   * Acessar logger Pino diretamente se necessário
    */
-  error(message: string, error?: Error | Record<string, any>): void {
-    let errorObj: Record<string, any> = {};
-
-    if (error instanceof Error) {
-      errorObj = {
-        error: error.name,
-        stack: error.stack,
-      };
-    } else if (error) {
-      errorObj = error;
-    }
-
-    if (this.isDevelopment()) {
-      console.error(
-        `${colors.blue}[${this.formatTimestamp()}]${colors.reset} ${colors.red}✖${colors.reset}  ${message}`,
-        errorObj || '',
-      );
-    } else {
-      console.error(JSON.stringify({ level: 'error', timestamp: new Date().toISOString(), message, ...errorObj }));
-    }
-  }
-
-  /**
-   * Log fatal
-   */
-  fatal(message: string, error?: Error | Record<string, any>): void {
-    let errorObj: Record<string, any> = {};
-
-    if (error instanceof Error) {
-      errorObj = {
-        error: error.name,
-        stack: error.stack,
-      };
-    } else if (error) {
-      errorObj = error;
-    }
-
-    if (this.isDevelopment()) {
-      console.error(
-        `${colors.blue}[${this.formatTimestamp()}]${colors.reset} ${colors.red}🔴${colors.reset} ${message}`,
-        errorObj || '',
-      );
-    } else {
-      console.error(JSON.stringify({ level: 'fatal', timestamp: new Date().toISOString(), message, ...errorObj }));
-    }
-  }
-
-  /**
-   * Retorna instância de logging (para compatibilidade)
-   */
-  getLogger(): this {
-    return this;
+  getPinoLogger(): PinoLogger {
+    return this.pinoLogger;
   }
 }

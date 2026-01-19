@@ -1,0 +1,2 @@
+[dotenv@17.2.3] injecting env (22) from .env -- tip: ­ƒøá´©Å  run anywhere with `dotenvx run -- yourcommand`
+[95m[Nest] 42268  - [39m19/01/2026, 15:05:42 [95m  DEBUG[39m [38;5;3m[TypeOrmConfig] [39m[95mDatabase Config: {"host":"localhost","port":5432,"database":"teddy_db","synchronize":true}[39m
