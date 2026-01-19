@@ -1,9 +1,9 @@
 import { Injectable, Logger, Inject, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import type { IClientRepositoryPort } from '../../../clients/domain/ports/client.repository.port';
-import { CLIENT_REPOSITORY_TOKEN } from '../../../clients/domain/ports/client.repository.port';
-import { Client } from '../../../clients/domain/entities/client.entity';
+import type { IUserRepositoryPort } from '../../../users/domain/ports/user.repository.port';
+import { USER_REPOSITORY_TOKEN } from '../../../users/domain/ports/user.repository.port';
+import { User } from "../../../users/domain/entities/user.entity";
 import type { RecoveryTokenPayload } from '../../domain/types';
 
 @Injectable()
@@ -13,8 +13,8 @@ export class ResetPasswordUseCase {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    @Inject(CLIENT_REPOSITORY_TOKEN)
-    private readonly clientRepository: IClientRepositoryPort,
+    @Inject(USER_REPOSITORY_TOKEN)
+    private readonly userRepository: IUserRepositoryPort,
   ) {}
 
   async execute(token: string, newPassword: string): Promise<{ message: string }> {
@@ -35,20 +35,20 @@ export class ResetPasswordUseCase {
       }
 
       // 2️⃣ Buscar cliente
-      const client = await this.clientRepository.findById(payload.sub);
+      const user = await this.userRepository.findById(payload.sub);
       if (!client) {
         this.logger.warn(`⚠️ Cliente não encontrado: ${payload.sub}`);
         throw new BadRequestException('Usuário não encontrado');
       }
 
       // 3️⃣ Validar se o token hash coincide (prevenção contra uso de tokens inválidos)
-      if (!client.recoveryTokenHash) {
+      if (!user.recoveryTokenHash) {
         this.logger.warn(`⚠️ Nenhum token de recuperação ativo para: ${payload.email}`);
         throw new UnauthorizedException('Token de recuperação não encontrado ou expirado');
       }
 
-      const tokenHashFromDb = client.recoveryTokenHash;
-      const tokenHashFromRequest = Client.hashPassword(token);
+      const tokenHashFromDb = user.recoveryTokenHash;
+      const tokenHashFromRequest = user.hashPassword(token);
 
       // ⚠️ NOTA: Em produção, seria melhor usar bcrypt.compare()
       // Por agora usamos comparação direta do hash SHA256
@@ -58,20 +58,20 @@ export class ResetPasswordUseCase {
       }
 
       // 4️⃣ Verificar expiração do token
-      if (client.recoveryTokenExpires && client.recoveryTokenExpires < new Date()) {
+      if (user.recoveryTokenExpires && user.recoveryTokenExpires < new Date()) {
         this.logger.warn(`⚠️ Token expirado para: ${payload.email}`);
         throw new UnauthorizedException('Link de recuperação expirado');
       }
 
       // 5️⃣ Hash a nova senha
-      const hashedPassword = Client.hashPassword(newPassword);
+      const hashedPassword = user.hashPassword(newPassword);
 
       // 6️⃣ Atualizar senha e limpar tokens de recuperação
-      client.password = hashedPassword;
-      client.recoveryTokenHash = null;
-      client.recoveryTokenExpires = null;
+      user.password = hashedPassword;
+      user.recoveryTokenHash = null;
+      user.recoveryTokenExpires = null;
 
-      await this.clientRepository.update(client.id, client);
+      await this.userRepository.update(user.id, user);
       this.logger.log(`✅ Senha alterada com sucesso para: ${payload.email}`);
 
       return { message: 'Senha alterada com sucesso. Você pode fazer login com sua nova senha.' };

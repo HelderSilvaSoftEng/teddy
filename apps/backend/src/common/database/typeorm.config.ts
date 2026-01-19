@@ -1,7 +1,8 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import * as dotenv from 'dotenv';
 import { Logger } from '@nestjs/common';
-import { Client } from '../../app/modules/clients/domain/entities/client.entity';
+import { User } from '../../app/modules/users/domain/entities';
+import { Customer } from '../../app/modules/customers/domain/entities';
 
 dotenv.config();
 
@@ -14,9 +15,10 @@ export const typeormConfig: TypeOrmModuleOptions = {
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_NAME || 'teddy_db',
-  entities: [Client],
+  entities: [User, Customer],
   migrations: [],
   synchronize: true,
+  migrationsRun: false,
   logging: process.env.DB_LOGGING === 'true',
   logger: 'advanced-console',
   ssl:

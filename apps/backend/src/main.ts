@@ -1,4 +1,4 @@
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
@@ -6,10 +6,13 @@ import { AppModule } from './app/app.module';
 import { LoggerService } from './common/services/logger';
 
 async function bootstrap() {
-  const loggerService = new LoggerService();
   const app = await NestFactory.create(AppModule, {
-    logger: false, // Desabilita o logger padrão do NestJS
+    logger: false, // ✅ Desabilitar logger padrão do NestJS
   });
+
+  // ✅ Usar LoggerService como logger global
+  const loggerService = new LoggerService('NestJS');
+  app.useLogger(loggerService);
   
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3001',
@@ -46,7 +49,6 @@ async function bootstrap() {
       'access-token',
     )
     .addTag('🔐 Autenticação', 'Authentication endpoints')
-    .addTag('👥 Clientes', 'Client management endpoints')
     .addTag('🏥 Health', 'Health check endpoints')
     .addTag('📊 Métricas', 'Metrics endpoints')
     .build();
@@ -61,8 +63,13 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   
   await app.listen(port);
-  loggerService.info(`🚀 Application is running on: http://localhost:${port}/${globalPrefix}`);
-  loggerService.info(`📚 Swagger documentation: http://localhost:${port}/docs`);
+  
+  // Log de inicialização com sucesso usando o LoggerService
+  loggerService.log(`🚀 Application is running on: http://localhost:${port}/${globalPrefix}`, 'Bootstrap');
+  loggerService.log(`📚 Swagger documentation: http://localhost:${port}/docs`, 'Bootstrap');
 }
 
-bootstrap();
+bootstrap().catch((error) => {
+  console.error('❌ Failed to start application:', error);
+  process.exit(1);
+});

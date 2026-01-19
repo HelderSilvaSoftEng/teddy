@@ -1,5 +1,5 @@
 export interface TokenPayloadUser {
-  sub: string;          // ClientId
+  sub: string;          // UserId
   email: string;
   name?: string;
   iat?: number;
@@ -8,7 +8,7 @@ export interface TokenPayloadUser {
 
 
 export interface RefreshTokenPayload {
-  sub: string;          // ClientId
+  sub: string;          // UserId
   jti: string;          // ID único para revogação
   typ: 'refresh';
   iat?: number;
@@ -16,7 +16,7 @@ export interface RefreshTokenPayload {
 }
 
 export interface RecoveryTokenPayload {
-  sub: string;          // ClientId
+  sub: string;          // UserId
   email: string;
   type: 'recovery';
   iat?: number;

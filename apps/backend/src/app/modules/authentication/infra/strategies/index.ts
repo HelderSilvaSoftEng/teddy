@@ -1,2 +1,2 @@
-export { LocalClientStrategy } from './local-client.strategy';
+export { LocalUserStrategy } from './local-user.strategy';
 export { JwtStrategy } from './jwt.strategy';

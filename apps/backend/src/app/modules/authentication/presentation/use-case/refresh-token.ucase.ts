@@ -4,9 +4,9 @@ import { ConfigService } from '@nestjs/config';
 import type { Response } from 'express';
 import { randomUUID } from 'crypto';
 import type { RefreshTokenPayload, RefreshResponse } from '../../domain/types';
-import type { IClientRepositoryPort } from '../../../clients/domain/ports/client.repository.port';
-import { CLIENT_REPOSITORY_TOKEN } from '../../../clients/domain/ports/client.repository.port';
-import { Client } from '../../../clients/domain/entities/client.entity';
+import type { IUserRepositoryPort } from '../../../users/domain/ports/user.repository.port';
+import { USER_REPOSITORY_TOKEN } from '../../../users/domain/ports/user.repository.port';
+import { User } from "../../../users/domain/entities/user.entity";
 
 @Injectable()
 export class RefreshTokenUseCase {
@@ -15,8 +15,8 @@ export class RefreshTokenUseCase {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    @Inject(CLIENT_REPOSITORY_TOKEN)
-    private readonly clientRepository: IClientRepositoryPort,
+    @Inject(USER_REPOSITORY_TOKEN)
+    private readonly userRepository: IUserRepositoryPort,
   ) {}
 
   async execute(refreshToken: string, response: Response): Promise<RefreshResponse> {
@@ -45,24 +45,24 @@ export class RefreshTokenUseCase {
       this.logger.log(`🔄 Iniciando refresh para cliente: ${decoded.sub}`);
 
       // 3️⃣ Buscar cliente no BD
-      const client = await this.clientRepository.findById(decoded.sub);
+      const user = await this.userRepository.findById(decoded.sub);
       if (!client) {
         throw new UnauthorizedException('Cliente não encontrado');
       }
 
       // 4️⃣ Validar refresh token hash (JTI vs hash no BD)
-      if (!client.refreshTokenHash) {
+      if (!user.refreshTokenHash) {
         throw new UnauthorizedException('Refresh token não configurado');
       }
 
-      const currentJtiHash = Client.hashPassword(decoded.jti);
-      if (currentJtiHash !== client.refreshTokenHash) {
-        this.logger.warn(`❌ JTI hash não corresponde para cliente: ${client.id}`);
+      const currentJtiHash = user.hashPassword(decoded.jti);
+      if (currentJtiHash !== user.refreshTokenHash) {
+        this.logger.warn(`❌ JTI hash não corresponde para cliente: ${user.id}`);
         throw new UnauthorizedException('Refresh token revogado');
       }
 
       // 5️⃣ Validar expiração
-      if (!client.refreshTokenExpires || new Date() > client.refreshTokenExpires) {
+      if (!user.refreshTokenExpires || new Date() > user.refreshTokenExpires) {
         throw new UnauthorizedException('Refresh token expirado');
       }
 
@@ -72,9 +72,9 @@ export class RefreshTokenUseCase {
       const accessTokenTtl = this.configService.get('JWT_EXPIRATION', 900);
       const newAccessToken = this.jwtService.sign(
         {
-          sub: client.id,
-          email: client.email,
-          name: client.userName || client.email,
+          sub: user.id,
+          email: user.email,
+          name: user.userName || user.email,
         },
         {
           expiresIn: accessTokenTtl,
@@ -89,7 +89,7 @@ export class RefreshTokenUseCase {
       const refreshTokenTtl = this.configService.get('REFRESH_TOKEN_TTL', 604800);
 
       const newRefreshPayload = {
-        sub: client.id,
+        sub: user.id,
         jti: newJti,
         typ: 'refresh',
       };
@@ -100,13 +100,13 @@ export class RefreshTokenUseCase {
       });
 
       // 8️⃣ Hash do novo JTI
-      const newJtiHash = Client.hashPassword(newJti);
+      const newJtiHash = user.hashPassword(newJti);
 
       // 9️⃣ Salvar novo hash no BD
-      client.refreshTokenHash = newJtiHash;
-      client.refreshTokenExpires = new Date(Date.now() + refreshTokenTtl * 1000);
+      user.refreshTokenHash = newJtiHash;
+      user.refreshTokenExpires = new Date(Date.now() + refreshTokenTtl * 1000);
 
-      await this.clientRepository.update(client.id, client);
+      await this.userRepository.update(user.id, user);
 
       this.logger.log(`✅ Novo Refresh Token hash salvo`);
 

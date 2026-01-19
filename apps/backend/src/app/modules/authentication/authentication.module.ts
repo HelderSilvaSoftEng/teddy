@@ -10,10 +10,10 @@ import { AuthController } from './adapters/controllers/auth.controller';
 import { LoginUseCase, RefreshTokenUseCase, LogoutUseCase, RecoveryPasswordUseCase, ResetPasswordUseCase } from './presentation/use-case';
 
 // Strategies & Guards
-import { LocalClientStrategy, JwtStrategy } from './infra/strategies';
+import { LocalUserStrategy, JwtStrategy } from './infra/strategies';
 
-// Clients module (para ClientRepository)
-import { ClientsModule } from '../clients/clients.module';
+// Users module (para UserRepository)
+import { UsersModule } from '../users/users.module';
 
 // Email module
 import { EmailModule } from '../../../common/services/email';
@@ -30,7 +30,7 @@ import { EmailModule } from '../../../common/services/email';
       }),
       inject: [ConfigService],
     }),
-    ClientsModule,
+    UsersModule,
     EmailModule,
   ],
   controllers: [AuthController],
@@ -43,7 +43,7 @@ import { EmailModule } from '../../../common/services/email';
     ResetPasswordUseCase,
 
     // Strategies
-    LocalClientStrategy,
+    LocalUserStrategy,
     JwtStrategy,
   ],
   exports: [JwtModule, PassportModule, JwtStrategy],

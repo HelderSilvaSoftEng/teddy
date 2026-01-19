@@ -4,9 +4,9 @@ import { ConfigService } from '@nestjs/config';
 import type { Response } from 'express';
 import { randomUUID } from 'crypto';
 import type { ICurrentUser, TokenPayloadUser, LoginResponse } from '../../domain/types';
-import type { IClientRepositoryPort } from '../../../clients/domain/ports/client.repository.port';
-import { CLIENT_REPOSITORY_TOKEN } from '../../../clients/domain/ports/client.repository.port';
-import { Client } from '../../../clients/domain/entities/client.entity';
+import type { IUserRepositoryPort } from '../../../users/domain/ports/user.repository.port';
+import { USER_REPOSITORY_TOKEN } from '../../../users/domain/ports/user.repository.port';
+import { User } from "../../../users/domain/entities/user.entity";
 
 @Injectable()
 export class LoginUseCase {
@@ -15,25 +15,25 @@ export class LoginUseCase {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    @Inject(CLIENT_REPOSITORY_TOKEN)
-    private readonly clientRepository: IClientRepositoryPort,
+    @Inject(USER_REPOSITORY_TOKEN)
+    private readonly userRepository: IUserRepositoryPort,
   ) {}
 
   async execute(user: ICurrentUser, response: Response): Promise<LoginResponse> {
     try {
       this.logger.log(`🔐 Iniciando login para: ${user.email}`);
 
-      // 1️⃣ Buscar cliente no BD para ter dados atualizados
-      const client = await this.clientRepository.findById(user.id);
-      if (!client) {
-        throw new Error('Cliente não encontrado');
+      // 1️⃣ Buscar usuário no BD para ter dados atualizados
+      const currentUser = await this.userRepository.findById(user.id);
+      if (!currentUser) {
+        throw new Error('Usuário não encontrado');
       }
 
       // 2️⃣ Preparar payload do Access Token (curta duração - 15 min)
       const accessTokenPayload: TokenPayloadUser = {
-        sub: user.id,
-        email: user.email,
-        name: user.name,
+        sub: currentUser.id,
+        email: currentUser.email,
+        name: currentUser.email,
       };
 
       // 3️⃣ Gerar Access Token
@@ -43,14 +43,14 @@ export class LoginUseCase {
         secret: this.configService.get<string>('JWT_SECRET'),
       });
 
-      this.logger.log(`✅ Access Token gerado com TTL ${accessTokenTtl}s: ${user.email}`);
+      this.logger.log(`✅ Access Token gerado com TTL ${accessTokenTtl}s: ${currentUser.email}`);
 
       // 4️⃣ Gerar Refresh Token (7 dias) com JTI único
       const jti = randomUUID();
       const refreshTokenTtl = this.configService.get('REFRESH_TOKEN_TTL', 604800); // 7 dias
 
       const refreshTokenPayload = {
-        sub: user.id,
+        sub: currentUser.id,
         jti,
         typ: 'refresh',
       };
@@ -60,26 +60,26 @@ export class LoginUseCase {
         secret: this.configService.get<string>('REFRESH_TOKEN_SECRET') ?? this.configService.get<string>('JWT_SECRET'),
       });
 
-      this.logger.log(`✅ Refresh Token gerado com TTL ${refreshTokenTtl}s: ${user.email}`);
+      this.logger.log(`✅ Refresh Token gerado com TTL ${refreshTokenTtl}s: ${currentUser.email}`);
 
       // 5️⃣ Hash do JTI usando o método estático da entity
-      const hashedJti = Client.hashPassword(jti);
+      const hashedJti = User.hashPassword(jti);
 
       // 6️⃣ Incrementar contador de acessos (login count)
-      client.incrementAccessCount();
+      currentUser.incrementAccessCount();
 
-      // 7️⃣ Salvar refresh token hash no cliente
-      client.refreshTokenHash = hashedJti;
-      client.refreshTokenExpires = new Date(Date.now() + refreshTokenTtl * 1000);
+      // 7️⃣ Salvar refresh token hash no usuário
+      currentUser.refreshTokenHash = hashedJti;
+      currentUser.refreshTokenExpires = new Date(Date.now() + refreshTokenTtl * 1000);
 
-      await this.clientRepository.update(user.id, client);
+      await this.userRepository.update(currentUser.id, currentUser);
 
       // 8️⃣ Incrementar contador de acessos no repositório (SQL)
-      await this.clientRepository.incrementAccessCount(user.id);
+      await this.userRepository.incrementAccessCount(currentUser.id);
 
-      this.logger.log(`✅ Refresh token hash e contador de acessos atualizados no BD: ${user.email}`);
+      this.logger.log(`✅ Refresh token hash e contador de acessos atualizados no BD: ${currentUser.email}`);
 
-      // 7️⃣ Setar cookies httpOnly com tokens
+      // 9️⃣ Setar cookies httpOnly com tokens
       const accessTokenExpires = new Date();
       accessTokenExpires.setSeconds(accessTokenExpires.getSeconds() + (this.configService.get<number>('JWT_EXPIRATION') ?? 900));
 
@@ -106,12 +106,12 @@ export class LoginUseCase {
         expires: refreshTokenExpires,
       });
 
-      this.logger.log(`✅ Cookies httpOnly setados: ${user.email}`);
+      this.logger.log(`✅ Cookies httpOnly setados: ${currentUser.email}`);
 
-      // 8️⃣ Retornar response com access token + refresh token
+      // 🔟 Retornar response com access token + refresh token
       return {
-        user: user.name,
-        email: user.email,
+        user: currentUser.email,
+        email: currentUser.email,
         accessToken: accessToken,
         refreshToken: refreshToken,
       };
