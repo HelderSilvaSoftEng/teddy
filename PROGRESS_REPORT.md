@@ -1,7 +1,7 @@
 # 📋 Relatório de Progresso - Desafio Teddy
 
 **Data**: 18 de janeiro de 2026  
-**Status Geral**: 60% Concluído (MVP - Autenticação + CRUD Clientes implementados)
+**Status Geral**: 65% Concluído (MVP + Observabilidade Básica)
 
 ---
 
@@ -54,7 +54,7 @@
 ### Diferenciais
 
 - [ ] CI/CD com GitHub Actions
-- [ ] Observabilidade (logs estruturados JSON, healthcheck, metrics)
+- [x] Observabilidade (logs estruturados JSON, healthcheck, metrics)
 - [ ] E2E tests
 - [ ] OpenTelemetry/tracing
 
@@ -79,8 +79,10 @@
 
 #### ⏳ Pendente
 
-- [ ] **Healthcheck** - `GET /healthz` endpoint
-- [ ] **Metrics** - `GET /metrics` endpoint (Prometheus format)
+- [x] **Healthcheck** - `GET /health` endpoint com verificação de BD
+- [x] **Liveness Probe** - `GET /health/live` para Kubernetes
+- [x] **Readiness Probe** - `GET /health/ready` para Kubernetes
+- [x] **Metrics** - `GET /metrics` endpoint (Prometheus format com prom-client)
 - [ ] **Docker** - Dockerfile + docker-compose.yml isolado
 - [ ] **.env** - Template .env.example
 - [ ] **README.md** - Backend com instruções específicas
@@ -145,6 +147,24 @@ apps/backend/
 ├── tsconfig.json ✅
 └── package.json ✅
 ```
+
+### 📊 Observabilidade
+
+#### ✅ Implementado
+
+- [x] **Healthcheck Module** - `/health` (check geral com BD)
+- [x] **Liveness Probe** - `/health/live` (apenas status vivo)
+- [x] **Readiness Probe** - `/health/ready` (pronto p/ receber requisições)
+- [x] **Metrics Module** - `/metrics` (Prometheus format com prom-client)
+- [x] **Métricas automáticas de Node.js**
+  - CPU time (user, system, total)
+  - Heap memory (total, used, available)
+  - Event loop lag (min, max, mean, stddev, percentiles)
+  - GC duration (major, minor, incremental)
+  - Process uptime
+  - Active resources e handles
+
+---
 
 ---
 
