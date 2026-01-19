@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { Customer } from '../../domain/entities';
 import { ICustomerRepositoryPort } from '../../domain/ports';
 
@@ -18,29 +18,27 @@ export class CustomerRepository implements ICustomerRepositoryPort {
 
   async findById(id: string): Promise<Customer | null> {
     return this.repository.findOne({
-      where: { id },
-      withDeleted: false,
+      where: { id, deletedAt: IsNull() },
     });
   }
 
   async findByUserId(userId: string): Promise<Customer | null> {
     return this.repository.findOne({
-      where: { userId },
-      withDeleted: false,
+      where: { userId, deletedAt: IsNull() },
     });
   }
 
   async findAll(skip = 0, take = 10): Promise<{ data: Customer[]; total: number }> {
-    const [data, total] = await this.repository.findAndCount({
-      where: {},
-      withDeleted: false,
-      skip,
-      take,
-    });
+    const [data, total] = await this.repository
+      .createQueryBuilder('customer')
+      .where('customer.deletedAt IS NULL')
+      .skip(skip)
+      .take(take)
+      .getManyAndCount();
     return { data, total };
   }
 
-  async update(id: string, data: Partial<Customer>): Promise<Customer> {
+  async update(id: string, data: Partial<Customer>): Promise<Customer | null> {
     await this.repository.update(id, data);
     return this.findById(id);
   }

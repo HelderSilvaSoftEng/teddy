@@ -133,7 +133,7 @@ export class MetricsService {
    * Usado por GET /metrics
    */
   async getMetrics(): Promise<string> {
-    return await promClient.register.metrics();
+    return promClient.register.metrics();
   }
 
   /**

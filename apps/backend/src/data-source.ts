@@ -1,7 +1,6 @@
 import { DataSource } from 'typeorm';
 import { User } from './app/modules/users/domain/entities/user.entity';
 import { Customer } from './app/modules/customers/domain/entities/customer.entity';
-import { SplitClientsIntoUsersAndCustomers1705600900000 } from './app/modules/database/migrations/1705600900000-SplitClientsIntoUsersAndCustomers';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -11,7 +10,7 @@ export const AppDataSource = new DataSource({
   password: process.env.DATABASE_PASSWORD || 'postgres',
   database: process.env.DATABASE_NAME || 'teddy_db',
   entities: [User, Customer],
-  migrations: [SplitClientsIntoUsersAndCustomers1705600900000],
+  migrations: [],
   synchronize: false,
   logging: true,
 });

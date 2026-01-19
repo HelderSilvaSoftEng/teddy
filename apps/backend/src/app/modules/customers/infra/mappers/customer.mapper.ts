@@ -8,15 +8,15 @@ export class CustomerMapper {
     return {
       id: customer.id,
       userId: customer.userId,
-      userName: customer.userName,
-      personalId: customer.personalId,
-      mobile: customer.mobile,
+      name: customer.name,
+      personalId: (customer as any).personalId,
+      mobile: (customer as any).mobile,
       salary: customer.salary,
-      enterprise: customer.enterprise,
+      company: customer.company,
       status: customer.status,
-      accessCount: customer.accessCount,
       createdAt: customer.createdAt,
       updatedAt: customer.updatedAt,
+      deletedAt: customer.deletedAt,
     };
   }
 

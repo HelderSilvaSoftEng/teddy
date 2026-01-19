@@ -16,6 +16,10 @@ export class UpdateCustomerUseCase {
     if (!customer) {
       throw new NotFoundException('Cliente não encontrado');
     }
-    return this.customerRepository.update(id, data);
+    const updated = await this.customerRepository.update(id, data);
+    if (!updated) {
+      throw new NotFoundException('Falha ao atualizar cliente');
+    }
+    return updated;
   }
 }
