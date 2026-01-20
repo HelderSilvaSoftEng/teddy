@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../../../presentation';
 import './header.css';
 
@@ -18,8 +18,11 @@ export function Header() {
   return (
     <header className="header">
       <div className="header-container">
-        <div className="logo">
-          <span>🐻 Teddy</span>
+        <div className="header-left">
+          <button className="menu-btn" onClick={() => setShowMenu(!showMenu)}>
+            <span className="material-symbols-outlined">menu</span>
+          </button>
+          <img src="/logo-Teddy.svg" alt="Teddy" className="logo" />
         </div>
 
         <nav className="header-nav">

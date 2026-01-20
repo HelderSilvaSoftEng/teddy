@@ -1,5 +1,5 @@
 .header {
-  background-color: #f5f5f5;
+  background-color: #ffffff;
   border-bottom: 1px solid #e0e0e0;
   padding: 0;
   position: sticky;
@@ -13,23 +13,42 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 2rem;
+  padding: 1rem 2rem;
+  gap: 2rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.menu-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+}
+
+.menu-btn .material-symbols-outlined {
+  font-size: 24px;
 }
 
 .logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #333;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  height: 40px;
+  width: auto;
 }
 
 .header-nav {
   display: flex;
-  gap: 2rem;
+  gap: 3rem;
   flex: 1;
-  margin-left: 2rem;
+  justify-content: center;
+  margin: 0;
 }
 
 .header-nav a {
@@ -43,10 +62,17 @@
   color: #ff6633;
 }
 
+.header-nav a.active {
+  color: #ff6633;
+  border-bottom: 2px solid #ff6633;
+  padding-bottom: 0.25rem;
+}
+
 .user-menu {
   display: flex;
   align-items: center;
   gap: 1rem;
+  margin-left: auto;
 }
 
 .user-name {
