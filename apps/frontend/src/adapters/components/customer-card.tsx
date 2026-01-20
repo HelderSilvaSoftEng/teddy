@@ -1,6 +1,4 @@
-import { useState } from 'react';
 import { Customer } from '../../domain';
-import { useSelectedCustomers } from '../../presentation';
 import './customer-card.css';
 
 interface CustomerCardProps {
@@ -10,14 +8,6 @@ interface CustomerCardProps {
 }
 
 export function CustomerCard({ customer, onEdit, onDelete }: CustomerCardProps) {
-  const { selectedCustomers, toggleCustomer } = useSelectedCustomers();
-  const [isSelected, setIsSelected] = useState(selectedCustomers.some((c: Customer) => c.id === customer.id));
-
-  const handleToggleSelection = () => {
-    toggleCustomer(customer);
-    setIsSelected(!isSelected);
-  };
-
   const formatSalary = (salary: number | undefined) => {
     if (!salary) return 'N/A';
     return new Intl.NumberFormat('pt-BR', {
@@ -27,20 +17,9 @@ export function CustomerCard({ customer, onEdit, onDelete }: CustomerCardProps) 
   };
 
   return (
-    <div className={`customer-card ${isSelected ? 'selected' : ''}`}>
-      <div className="customer-header">
-        <div className="customer-selection">
-          <input
-            type="checkbox"
-            checked={isSelected}
-            onChange={handleToggleSelection}
-            className="customer-checkbox"
-            title="Selecionar cliente"
-          />
-        </div>
+    <div className="customer-card">
+      <div className="customer-content">
         <h3>{customer.name || 'Sem nome'}</h3>
-      </div>
-      <div className="customer-info">
         {customer.salary && (
           <p className="salary">Salário: {formatSalary(customer.salary)}</p>
         )}
@@ -50,18 +29,25 @@ export function CustomerCard({ customer, onEdit, onDelete }: CustomerCardProps) 
       </div>
       <div className="customer-actions">
         <button 
+          className="action-btn add-btn" 
+          onClick={() => onEdit(customer)}
+          title="Adicionar"
+        >
+          <span className="material-symbols-outlined">add</span>
+        </button>
+        <button 
           className="action-btn edit-btn" 
           onClick={() => onEdit(customer)}
           title="Editar"
         >
-          ✎
+          <span className="material-symbols-outlined">ink_pen</span>
         </button>
         <button 
           className="action-btn delete-btn" 
           onClick={() => onDelete(customer)}
           title="Deletar"
         >
-          🗑️
+          <span className="material-symbols-outlined">delete</span>
         </button>
       </div>
     </div>

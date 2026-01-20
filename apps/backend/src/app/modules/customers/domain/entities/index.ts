@@ -1,1 +1,1 @@
-export { Customer } from './customer.entity';
+export { Customer, CustomerStatusEnum } from './customer.entity';

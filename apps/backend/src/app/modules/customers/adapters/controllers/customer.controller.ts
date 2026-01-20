@@ -35,7 +35,7 @@ import {
 } from '../../presentation/use-cases';
 
 @ApiTags('👥 Clientes')
-@Controller('api/v1/customers')
+@Controller('v1/customers')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('access-token')
 export class CustomerController {
