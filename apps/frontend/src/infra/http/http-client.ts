@@ -5,12 +5,12 @@ export const API_CONFIG = {
   BASE_URL: API_BASE_URL,
   ENDPOINTS: {
     AUTH: {
-      LOGIN: '/auth/login',
-      LOGOUT: '/auth/logout',
-      REFRESH: '/auth/refresh',
-      ME: '/auth/me',
-      RECOVERY_PASSWORD: '/auth/recovery-password',
-      RESET_PASSWORD: '/auth/reset-password',
+      LOGIN: '/api/auth/login',
+      LOGOUT: '/api/auth/logout',
+      REFRESH: '/api/auth/refresh',
+      ME: '/api/auth/me',
+      RECOVERY_PASSWORD: '/api/auth/recovery-password',
+      RESET_PASSWORD: '/api/auth/reset-password',
     },
     CUSTOMERS: {
       BASE: '/api/v1/customers',
