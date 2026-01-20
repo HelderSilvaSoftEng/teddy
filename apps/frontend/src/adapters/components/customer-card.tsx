@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Customer } from '../../../domain';
-import { useSelectedCustomers } from '../../../presentation';
+import { Customer } from '../../domain';
+import { useSelectedCustomers } from '../../presentation';
 import './customer-card.css';
 
 interface CustomerCardProps {
@@ -11,7 +11,7 @@ interface CustomerCardProps {
 
 export function CustomerCard({ customer, onEdit, onDelete }: CustomerCardProps) {
   const { selectedCustomers, toggleCustomer } = useSelectedCustomers();
-  const [isSelected, setIsSelected] = useState(selectedCustomers.some(c => c.id === customer.id));
+  const [isSelected, setIsSelected] = useState(selectedCustomers.some((c: Customer) => c.id === customer.id));
 
   const handleToggleSelection = () => {
     toggleCustomer(customer);

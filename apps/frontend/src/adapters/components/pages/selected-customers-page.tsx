@@ -1,4 +1,3 @@
-import React from 'react';
 import { useSelectedCustomers } from '../../../presentation';
 import { Header, Sidebar } from '../common';
 import { CustomerCard } from '../customer-card';
@@ -26,6 +25,7 @@ export function SelectedCustomersPage() {
               <CustomerCard
                 key={customer.id}
                 customer={customer}
+                onEdit={() => {}}
                 onDelete={() => {}}
               />
             ))}

@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { ICustomer } from '../../../../../domain/entities/customer';
+import { Customer } from '../../../../domain';
 import '../styles/modals.css';
 
 interface UpdateCustomerModalProps {
   isOpen: boolean;
-  customer: ICustomer | null;
+  customer: Customer | null;
   onClose: () => void;
-  onSubmit: (customer: Omit<ICustomer, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  onSubmit: (customer: Omit<Customer, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -49,7 +49,7 @@ export function UpdateCustomerModal({
         name: formData.name,
         personalId: formData.personalId || undefined,
         mobile: formData.mobile || undefined,
-        salary: formData.salary ? parseFloat(formData.salary) : undefined,
+        salary: formData.salary ? parseFloat(formData.salary as string) : undefined,
         company: formData.company || undefined,
         status: 'ACTIVE',
       });

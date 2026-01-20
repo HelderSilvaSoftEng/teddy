@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import { createContext, useContext, useReducer, ReactNode } from 'react';
 import { ICurrentUser } from '../../domain';
 import { tokenStorage } from '../../infra';
 

@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { authRepository } from '../../../infra';
 import { RecoveryPasswordUseCase } from '../../../application';
 import './recovery-password-page.css';
 
 export function RecoveryPasswordPage() {
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');

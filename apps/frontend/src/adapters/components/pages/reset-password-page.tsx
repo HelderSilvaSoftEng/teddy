@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { authRepository } from '../../../infra';
 import { ResetPasswordUseCase } from '../../../application';
 import './reset-password-page.css';
 
 export function ResetPasswordPage() {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
 

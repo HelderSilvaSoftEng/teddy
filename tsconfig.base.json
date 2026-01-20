@@ -20,7 +20,14 @@
     "customConditions": ["@teddy-challenger/source"],
     "paths": {
       "@teddy-challenger/shared": ["libs/shared/src/index.ts"],
-      "@teddy-challenger/shared/database": ["libs/shared/src/database/index.ts"]
+      "@teddy-challenger/shared/database": ["libs/shared/src/database/index.ts"],
+      "@teddy-challenger/frontend/domain": ["apps/frontend/src/domain/index.ts"],
+      "@teddy-challenger/frontend/domain/entities/*": ["apps/frontend/src/domain/entities/*"],
+      "@teddy-challenger/frontend/application": ["apps/frontend/src/application/index.ts"],
+      "@teddy-challenger/frontend/infra": ["apps/frontend/src/infra/index.ts"],
+      "@teddy-challenger/frontend/presentation": ["apps/frontend/src/presentation/index.ts"],
+      "@teddy-challenger/frontend/presentation/contexts": ["apps/frontend/src/presentation/contexts/index.ts"],
+      "@teddy-challenger/frontend/adapters": ["apps/frontend/src/adapters/index.ts"]
     }
   }
 }
