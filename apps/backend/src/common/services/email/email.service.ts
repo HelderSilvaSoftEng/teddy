@@ -62,7 +62,7 @@ export class EmailService {
     userName: string,
   ): Promise<void> {
     try {
-      const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
+      const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:4200';
       const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
 
       const html = passwordRecoveryTemplate(userName, resetLink);
