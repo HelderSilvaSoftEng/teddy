@@ -4,9 +4,13 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app/app.module';
 import { LoggerService } from './common/services/logger';
+import { initializeTracing } from './app/telemetry';
 
 async function bootstrap() {
   try {
+    // 🔍 Initialize OpenTelemetry tracing BEFORE creating NestFactory
+    initializeTracing();
+
     console.log('🔍 [MAIN] Iniciando NestFactory.create...');
     const app = await NestFactory.create(AppModule, {
       logger: false, // ✅ Desabilitar logger padrão do NestJS

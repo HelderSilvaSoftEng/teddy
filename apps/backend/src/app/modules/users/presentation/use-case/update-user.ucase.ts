@@ -4,6 +4,7 @@ import { USER_REPOSITORY_TOKEN } from '../../domain/ports/user.repository.port';
 import { User } from '../../domain/entities/user.entity';
 import { UpdateUserDto } from '../../adapters/dtos/update-user.dto';
 import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
+import { getTracer } from '../../../../../app/telemetry';
 
 /**
  * UpdateUserUseCase - Lógica para atualizar um usuário existente
@@ -11,6 +12,7 @@ import { LogAuditUseCase } from '../../../../../common/modules/audit/presentatio
 @Injectable()
 export class UpdateUserUseCase {
   private readonly logger = new Logger(UpdateUserUseCase.name);
+  private readonly tracer = getTracer();
 
   constructor(
     @Inject(USER_REPOSITORY_TOKEN)
@@ -19,9 +21,18 @@ export class UpdateUserUseCase {
   ) {}
 
   async execute(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    const span = this.tracer.startSpan('update_user_process', {
+      attributes: {
+        'user.id': id,
+        'operation': 'UPDATE_USER',
+      },
+    });
+
     try {
       // 1️⃣ Buscar usuário
+      const findSpan = this.tracer.startSpan('find_user_by_id', { parent: span });
       const user = await this.UserRepository.findById(id);
+      findSpan.end();
 
       if (!user) {
         throw new NotFoundException('Usuário não encontrado');
@@ -33,10 +44,13 @@ export class UpdateUserUseCase {
       user.update(updateUserDto);
 
       // 3️⃣ Salvar no repositório
+      const updateSpan = this.tracer.startSpan('update_user_repository', { parent: span });
       const updated = await this.UserRepository.update(id, user);
+      updateSpan.end();
 
       this.logger.log(`✅ Usuário atualizado com sucesso: ${id}`);
 
+      const auditSpan = this.tracer.startSpan('audit_update_user', { parent: span });
       try {
         await this.logAuditUseCase.execute({
           userId: id,
@@ -55,14 +69,23 @@ export class UpdateUserUseCase {
         });
       } catch {
         // Silently fail to not break main operation
+      } finally {
+        auditSpan.end();
       }
+
+      span.setAttributes({
+        'status': 200,
+      });
 
       return updated;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       this.logger.error(`❌ Erro ao atualizar usuário: ${errorMessage}`);
+      span.recordException(error instanceof Error ? error : new Error(errorMessage));
       throw error;
+    } finally {
+      span.end();
     }
   }
 }

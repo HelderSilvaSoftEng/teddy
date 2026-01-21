@@ -4,9 +4,12 @@ import { CUSTOMER_REPOSITORY_TOKEN } from '../../domain/ports';
 import { Customer } from '../../domain/entities';
 import { CreateCustomerDto } from '../../adapters/dtos';
 import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
+import { getTracer } from '../../../../../app/telemetry';
 
 @Injectable()
 export class CreateCustomerUseCase {
+  private readonly tracer = getTracer();
+
   constructor(
     @Inject(CUSTOMER_REPOSITORY_TOKEN)
     private readonly customerRepository: ICustomerRepositoryPort,
@@ -14,31 +17,55 @@ export class CreateCustomerUseCase {
   ) {}
 
   async execute(userId: string, data: CreateCustomerDto): Promise<Customer> {
-    const customer = await this.customerRepository.create({
-      userId,
-      ...data,
+    const span = this.tracer.startSpan('create_customer_process', {
+      attributes: {
+        'user.id': userId,
+        'operation': 'CREATE_CUSTOMER',
+      },
     });
 
     try {
-      await this.logAuditUseCase.execute({
-        userId: customer.userId,
-        userEmail: '',
-        action: 'CREATE',
-        entityType: 'Customer',
-        entityId: customer.id,
-        oldValues: null,
-        newValues: customer,
-        ipAddress: '',
-        userAgent: '',
-        endpoint: '/api/customers',
-        httpMethod: 'POST',
-        status: '201',
-        errorMessage: null,
+      const createSpan = this.tracer.startSpan('create_customer_repository', { parent: span });
+      const customer = await this.customerRepository.create({
+        userId,
+        ...data,
       });
-    } catch {
-      // Silently fail to not break main operation
-    }
+      createSpan.end();
 
-    return customer;
+      const auditSpan = this.tracer.startSpan('audit_create_customer', { parent: span });
+      try {
+        await this.logAuditUseCase.execute({
+          userId: customer.userId,
+          userEmail: '',
+          action: 'CREATE',
+          entityType: 'Customer',
+          entityId: customer.id,
+          oldValues: null,
+          newValues: customer,
+          ipAddress: '',
+          userAgent: '',
+          endpoint: '/api/customers',
+          httpMethod: 'POST',
+          status: '201',
+          errorMessage: null,
+        });
+      } catch {
+        // Silently fail to not break main operation
+      } finally {
+        auditSpan.end();
+      }
+
+      span.setAttributes({
+        'customer.id': customer.id,
+        'status': 201,
+      });
+
+      return customer;
+    } catch (error) {
+      span.recordException(error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    } finally {
+      span.end();
+    }
   }
 }
