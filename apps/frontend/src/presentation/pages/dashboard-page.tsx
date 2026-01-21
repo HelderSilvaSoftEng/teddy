@@ -9,7 +9,7 @@ import { CustomerTrendChart } from '../../adapters/components/dashboard/customer
 import { TrendPeriodToggle } from '../../adapters/components/dashboard/trend-period-toggle';
 import styles from './dashboard-page.module.css';
 
-export const DashboardPage: React.FC = () => {
+export const DashboardPage: React.FC<{ onOpenUserModal?: () => void }> = ({ onOpenUserModal }) => {
   const { isAuthenticated, user } = useAuth();
   const [stats, setStats] = useState<DashboardStatistics | null>(null);
   const [recentCustomers, setRecentCustomers] = useState<RecentUser[]>([]);
@@ -59,7 +59,7 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <>
-      <Header />
+      <Header onOpenUserModal={onOpenUserModal} />
       <div className={styles.page}>
         <header className={styles.header}>
           <h1>📊 Dashboard</h1>

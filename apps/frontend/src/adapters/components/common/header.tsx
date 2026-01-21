@@ -5,7 +5,7 @@ import { authRepository } from '../../../infra';
 import { Sidebar } from './sidebar';
 import './header.css';
 
-export function Header() {
+export function Header({ onOpenUserModal }: { onOpenUserModal?: () => void }) {
   const { user, setUser, logout } = useAuth();
   const [showSidebar, setShowSidebar] = useState(false);
 
@@ -65,7 +65,11 @@ export function Header() {
       </header>
       
       {showSidebar && (
-        <Sidebar isOpen={showSidebar} onClose={() => setShowSidebar(false)} />
+        <Sidebar 
+          isOpen={showSidebar} 
+          onClose={() => setShowSidebar(false)}
+          onOpenUserModal={onOpenUserModal}
+        />
       )}
     </>
   );

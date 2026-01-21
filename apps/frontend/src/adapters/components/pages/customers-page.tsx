@@ -11,7 +11,7 @@ import './customers-page.css';
 
 const ITEMS_PER_PAGE = 16;
 
-export function CustomersPage() {
+export function CustomersPage({ onOpenUserModal }: { onOpenUserModal?: () => void }) {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -110,8 +110,8 @@ export function CustomersPage() {
 
   return (
     <div className="customers-layout">
-      <Sidebar />
-      <Header />
+      <Sidebar onOpenUserModal={onOpenUserModal} />
+      <Header onOpenUserModal={onOpenUserModal} />
 
       <div className="customers-content">
         <div className="customers-header">
