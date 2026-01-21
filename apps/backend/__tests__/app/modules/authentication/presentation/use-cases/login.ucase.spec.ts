@@ -3,9 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { LoginUseCase } from 'src/app/modules/authentication/presentation/use-case/login.ucase';
 import { USER_REPOSITORY_TOKEN } from 'src/app/modules/users/domain/ports/user.repository.port';
-import { NotFoundException, UnauthorizedException } from 'src/common/exceptions';
 import { LogAuditUseCase } from 'src/common/modules/audit/presentation/use-cases';
-import type { LoginRequestDto } from 'src/app/modules/authentication/adapters/dtos/login-request.dto';
 
 describe('LoginUseCase', () => {
   let useCase: LoginUseCase;

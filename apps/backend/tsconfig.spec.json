@@ -13,7 +13,7 @@
   },
   "files": ["src/test-setup.ts"],
   "include": [
-    "src/**/*.spec.ts",
+    "src/**/*.ts",
     "src/**/*.d.ts",
     "__tests__/**/*.spec.ts"
   ]

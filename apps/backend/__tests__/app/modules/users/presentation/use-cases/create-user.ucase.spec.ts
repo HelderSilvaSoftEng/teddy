@@ -3,7 +3,7 @@ import { CreateUserUseCase } from 'src/app/modules/users/presentation/use-case/c
 import { USER_REPOSITORY_TOKEN } from 'src/app/modules/users/domain/ports/user.repository.port';
 import { ConflictException } from 'src/common/exceptions';
 import { LogAuditUseCase } from 'src/common/modules/audit/presentation/use-cases';
-import type { CreateUserDto } from 'src/app/modules/users/adapters/dtos/create-user.dto';
+import { CreateUserDto } from 'src/app/modules/users/adapters/dtos/create-user.dto';
 
 describe('CreateUserUseCase', () => {
   let useCase: CreateUserUseCase;
@@ -40,10 +40,8 @@ describe('CreateUserUseCase', () => {
 
   describe('execute', () => {
     const createUserDto: CreateUserDto = {
-      name: 'John Doe',
       email: 'john@example.com',
       password: 'securePassword123',
-      confirmPassword: 'securePassword123',
     };
 
     it('should create a user successfully', async () => {
