@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import { AppModule } from './app/app.module';
 import { LoggerService } from './common/services/logger';
 import { initializeTracing } from './app/telemetry';
+import { GlobalExceptionFilter, ValidationExceptionFilter } from './common/exceptions';
 
 async function bootstrap() {
   try {
@@ -45,6 +46,12 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
       transform: true,
     })
+  );
+
+  // 🔴 Registrar filtros globais de exceção
+  app.useGlobalFilters(
+    new ValidationExceptionFilter(),
+    new GlobalExceptionFilter(),
   );
 
   // Swagger documentation

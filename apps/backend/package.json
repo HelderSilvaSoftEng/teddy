@@ -80,6 +80,13 @@
             "buildTarget": "backend:build:production"
           }
         }
+      },
+      "test": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "jest",
+          "cwd": "apps/backend"
+        }
       }
     }
   },

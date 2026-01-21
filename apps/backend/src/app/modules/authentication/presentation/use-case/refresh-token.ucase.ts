@@ -1,4 +1,4 @@
-import { Injectable, Logger, UnauthorizedException, Inject, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import type { Response, Request } from 'express';
@@ -8,6 +8,7 @@ import type { IUserRepositoryPort } from '../../../users/domain/ports/user.repos
 import { USER_REPOSITORY_TOKEN } from '../../../users/domain/ports/user.repository.port';
 import { User } from "../../../users/domain/entities/user.entity";
 import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
+import { BadRequestException, UnauthorizedException, NotFoundException } from '../../../../../common/exceptions';
 
 @Injectable()
 export class RefreshTokenUseCase {
@@ -25,7 +26,9 @@ export class RefreshTokenUseCase {
     try {
       // 1️⃣ Validar e decodificar refresh token
       if (!refreshToken) {
-        throw new BadRequestException('Refresh token não fornecido');
+        throw new BadRequestException('Refresh token não fornecido', {
+          field: 'refreshToken',
+        });
       }
 
       let decoded: RefreshTokenPayload;
@@ -49,7 +52,10 @@ export class RefreshTokenUseCase {
       // 3️⃣ Buscar cliente no BD
       const user = await this.userRepository.findById(decoded.sub);
       if (!user) {
-        throw new UnauthorizedException('Cliente não encontrado');
+        throw new NotFoundException('Usuário não encontrado', {
+          entityType: 'User',
+          id: decoded.sub,
+        });
       }
 
       // 4️⃣ Validar refresh token hash (JTI vs hash no BD)

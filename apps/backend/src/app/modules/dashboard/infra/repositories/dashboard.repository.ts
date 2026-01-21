@@ -36,7 +36,7 @@ export class DashboardRepository implements IDashboardRepositoryPort {
     };
   }
 
-  async getRecentCustomers(limit: number): Promise<Array<{ id: string; name: string; email: string; createdAt: Date }>> {
+  async getRecentCustomers(limit: number): Promise<Array<{ id: string; name: string; company: string | null; createdAt: Date }>> {
     return await this.customerQueryHandler.getRecentCustomers(limit);
   }
 

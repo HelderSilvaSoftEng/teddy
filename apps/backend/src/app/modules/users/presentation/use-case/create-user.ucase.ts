@@ -1,10 +1,11 @@
-import { Injectable, BadRequestException, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import type { IUserRepositoryPort } from '../../domain/ports/user.repository.port';
 import { USER_REPOSITORY_TOKEN } from '../../domain/ports/user.repository.port';
 import { User, UserStatusEnum } from '../../domain/entities/user.entity';
 import { CreateUserDto } from '../../adapters/dtos/create-user.dto';
 import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
 import { getTracer } from '../../../../../app/telemetry';
+import { ConflictException } from '../../../../../common/exceptions';
 
 /**
  * CreateUserUseCase - Lógica para criar um novo usuário
@@ -43,7 +44,10 @@ export class CreateUserUseCase {
       validateSpan.end();
 
       if (existingUser) {
-        throw new BadRequestException('Email já cadastrado');
+        throw new ConflictException('Email já cadastrado', {
+          field: 'email',
+          value: createUserDto.email,
+        });
       }
 
       // 2️⃣ Criar instância da entidade com dados do DTO

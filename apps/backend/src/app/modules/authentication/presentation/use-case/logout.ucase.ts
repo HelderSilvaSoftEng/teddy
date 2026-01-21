@@ -1,9 +1,10 @@
-import { Injectable, Logger, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import type { Response, Request } from 'express';
 import type { ICurrentUser, LogoutResponse } from '../../domain/types';
 import type { IUserRepositoryPort } from '../../../users/domain/ports/user.repository.port';
 import { USER_REPOSITORY_TOKEN } from '../../../users/domain/ports/user.repository.port';
 import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
+import { NotFoundException } from '../../../../../common/exceptions';
 
 @Injectable()
 export class LogoutUseCase {
@@ -22,7 +23,7 @@ export class LogoutUseCase {
       // 1️⃣ Buscar cliente
       const currentUser = await this.userRepository.findById(user.id);
       if (!currentUser) {
-        throw new NotFoundException('Cliente não encontrado');
+        throw new NotFoundException('Cliente não encontrado', { entityType: 'User', id: user.id });
       }
 
       // 2️⃣ Zerar refresh token no cliente

@@ -9,6 +9,7 @@ import { USER_REPOSITORY_TOKEN } from '../../../users/domain/ports/user.reposito
 import { User } from "../../../users/domain/entities/user.entity";
 import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
 import { getTracer } from '../../../../../app/telemetry';
+import { NotFoundException } from '../../../../../common/exceptions';
 
 @Injectable()
 export class LoginUseCase {
@@ -47,7 +48,10 @@ export class LoginUseCase {
       findUserSpan.end();
 
       if (!currentUser) {
-        throw new Error('Usuário não encontrado');
+        throw new NotFoundException('Usuário não encontrado', {
+          entityType: 'User',
+          id: user.id,
+        });
       }
 
       // 2️⃣ Preparar payload do Access Token (curta duração - 15 min)

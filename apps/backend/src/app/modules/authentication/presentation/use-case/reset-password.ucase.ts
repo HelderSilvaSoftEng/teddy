@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
@@ -7,6 +7,7 @@ import { USER_REPOSITORY_TOKEN } from '../../../users/domain/ports/user.reposito
 import { User } from "../../../users/domain/entities/user.entity";
 import type { RecoveryTokenPayload } from '../../domain/types';
 import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
+import { UnauthorizedException, BadRequestException, NotFoundException } from '../../../../../common/exceptions';
 
 @Injectable()
 export class ResetPasswordUseCase {
@@ -41,7 +42,7 @@ export class ResetPasswordUseCase {
       const user = await this.userRepository.findById(payload.sub);
       if (!user) {
         this.logger.warn(`⚠️ Cliente não encontrado: ${payload.sub}`);
-        throw new BadRequestException('Usuário não encontrado');
+        throw new NotFoundException('Usuário não encontrado', { entityType: 'User', id: payload.sub });
       }
 
       // 3️⃣ Validar se o token hash coincide (prevenção contra uso de tokens inválidos)

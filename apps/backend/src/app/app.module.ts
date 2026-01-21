@@ -8,6 +8,7 @@ import { AuditModule } from '../common/modules/audit/audit.module';
 import { HealthModule } from '../common/modules/health';
 import { MetricsModule, MetricsMiddleware } from '../common/modules/metrics';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { GlobalExceptionFilter, ValidationExceptionFilter } from '../common/exceptions';
 
 @Module({
   imports: [

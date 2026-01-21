@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import type { IUserRepositoryPort } from '../../domain/ports/user.repository.port';
 import { USER_REPOSITORY_TOKEN } from '../../domain/ports/user.repository.port';
 import { User } from '../../domain/entities/user.entity';
 import { UpdateUserDto } from '../../adapters/dtos/update-user.dto';
 import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
 import { getTracer } from '../../../../../app/telemetry';
+import { NotFoundException } from '../../../../../common/exceptions';
 
 /**
  * UpdateUserUseCase - Lógica para atualizar um usuário existente
@@ -35,7 +36,10 @@ export class UpdateUserUseCase {
       findSpan.end();
 
       if (!user) {
-        throw new NotFoundException('Usuário não encontrado');
+        throw new NotFoundException('Usuário não encontrado', {
+          entityType: 'User',
+          id,
+        });
       }
 
       this.logger.log(`📝 Atualizando usuário: ${id}`);

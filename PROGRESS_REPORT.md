@@ -84,10 +84,10 @@
 
 ### Dashboard/Admin
 
-- [ ] Página Dashboard com cards (total usuários, etc)
-- [ ] Gráfico de usuários por período
-- [ ] Lista de últimos usuários
-- [ ] Autenticação no frontend
+- [x] Página Dashboard com cards (total usuários, etc)
+- [x] Gráfico de usuários por período
+- [x] Lista de últimos usuários
+- [x] Autenticação no frontend
 
 ### Contador de Acessos
 
@@ -335,10 +335,10 @@ apps/backend/
 
 - [ ] **React Hook Form** - Substituir validação manual por RHF
 - [ ] **Zod/Yup** - Schema validation e mensagens de erro
-- [ ] **Dashboard** - Cards com métricas, gráficos com Recharts
-- [ ] **CRUD Clientes** - Modais, paginação, filtros
+- [x] **Dashboard** - Cards com métricas, gráficos com Recharts
+- [x] **CRUD Clientes** - Modais, paginação, filtros
 - [ ] **Toast/Snackbar** - Feedback de ações
-- [ ] **Admin Panel** - CRUD de usuários
+- [x] **Admin Panel** - CRUD de usuários
 - [ ] **Auditoria UI** - Página de logs com filtros
 - [ ] **Testes** - vitest + @testing-library/react
 - [ ] **Testes Unitários** - Vitest

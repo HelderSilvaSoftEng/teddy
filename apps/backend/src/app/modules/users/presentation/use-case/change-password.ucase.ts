@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import type { IUserRepositoryPort } from '../../domain/ports/user.repository.port';
 import { USER_REPOSITORY_TOKEN } from '../../domain/ports/user.repository.port';
 import type { ChangePasswordDto } from '../../adapters/dtos/change-password.dto';
 import type { IChangePasswordPort } from '../ports/change-password.port';
+import { BadRequestException, NotFoundException } from '../../../../../common/exceptions';
 
 /**
  * ChangePasswordUseCase - Lógica para alterar a senha de um usuário
@@ -20,25 +21,34 @@ export class ChangePasswordUseCase implements IChangePasswordPort {
     try {
       // 1️⃣ Validar que as senhas conferem
       if (input.newPassword !== input.confirmPassword) {
-        throw new BadRequestException('As novas senhas não conferem');
+        throw new BadRequestException('As novas senhas não conferem', {
+          field: 'confirmPassword',
+        });
       }
 
       // 2️⃣ Validar que a nova senha é diferente da atual
       if (input.currentPassword === input.newPassword) {
-        throw new BadRequestException('A nova senha não pode ser igual à senha atual');
+        throw new BadRequestException('A nova senha não pode ser igual à senha atual', {
+          field: 'newPassword',
+        });
       }
 
       // 3️⃣ Buscar usuário
       const user = await this.UserRepository.findById(id);
 
       if (!user) {
-        throw new NotFoundException('Usuário não encontrado');
+        throw new NotFoundException('Usuário não encontrado', {
+          entityType: 'User',
+          id,
+        });
       }
 
       // 4️⃣ Verificar se a senha atual está correta usando método da entity
       if (!user.isPasswordValid(input.currentPassword)) {
         this.logger.warn(`❌ Tentativa de alterar senha com senha atual incorreta: ${id}`);
-        throw new BadRequestException('Senha atual incorreta');
+        throw new BadRequestException('Senha atual incorreta', {
+          field: 'currentPassword',
+        });
       }
 
       this.logger.log(`🔐 Alterando senha do usuário: ${id}`);
