@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, Inject, Logger } from '@nestjs/common';
 import type { IUserRepositoryPort } from '../../domain/ports/user.repository.port';
 import { USER_REPOSITORY_TOKEN } from '../../domain/ports/user.repository.port';
 import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
+import { getTracer } from '../../../../../app/telemetry';
 
 /**
  * DeleteUserUseCase - Deletar (soft-delete) um usuário
@@ -14,6 +15,7 @@ import { LogAuditUseCase } from '../../../../../common/modules/audit/presentatio
 @Injectable()
 export class DeleteUserUseCase {
   private readonly logger = new Logger(DeleteUserUseCase.name);
+  private readonly tracer = getTracer();
 
   constructor(
     @Inject(USER_REPOSITORY_TOKEN)
@@ -22,9 +24,18 @@ export class DeleteUserUseCase {
   ) {}
 
   async execute(id: string): Promise<void> {
+    const span = this.tracer.startSpan('delete_user_process', {
+      attributes: {
+        'user.id': id,
+        'operation': 'DELETE_USER',
+      },
+    });
+
     try {
       // 1️⃣ Verificar se usuário existe
+      const findSpan = this.tracer.startSpan('find_user_by_id', { parent: span });
       const user = await this.UserRepository.findById(id);
+      findSpan.end();
 
       if (!user) {
         throw new NotFoundException('Usuário não encontrado');
@@ -33,10 +44,13 @@ export class DeleteUserUseCase {
       this.logger.log(`🗑️ Deletando usuário: ${id}`);
 
       // 2️⃣ Deletar usuário (soft-delete)
+      const deleteSpan = this.tracer.startSpan('delete_user_repository', { parent: span });
       await this.UserRepository.delete(id);
+      deleteSpan.end();
 
       this.logger.log(`✅ Usuário deletado com sucesso: ${id}`);
 
+      const auditSpan = this.tracer.startSpan('audit_delete_user', { parent: span });
       try {
         await this.logAuditUseCase.execute({
           userId: id,
@@ -55,12 +69,21 @@ export class DeleteUserUseCase {
         });
       } catch {
         // Silently fail to not break main operation
+      } finally {
+        auditSpan.end();
       }
+
+      span.setAttributes({
+        'status': 204,
+      });
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       this.logger.error(`❌ Erro ao deletar usuário: ${errorMessage}`);
+      span.recordException(error instanceof Error ? error : new Error(errorMessage));
       throw error;
+    } finally {
+      span.end();
     }
   }
 }

@@ -8,10 +8,12 @@ import type { IUserRepositoryPort } from '../../../users/domain/ports/user.repos
 import { USER_REPOSITORY_TOKEN } from '../../../users/domain/ports/user.repository.port';
 import { User } from "../../../users/domain/entities/user.entity";
 import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
+import { getTracer } from '../../../../../app/telemetry';
 
 @Injectable()
 export class LoginUseCase {
   private readonly logger = new Logger(LoginUseCase.name);
+  private readonly tracer = getTracer();
 
   constructor(
     private readonly jwtService: JwtService,
@@ -22,11 +24,28 @@ export class LoginUseCase {
   ) {}
 
   async execute(user: ICurrentUser, response: Response, request?: Request): Promise<LoginResponse> {
+    const span = this.tracer.startSpan('login_process', {
+      attributes: {
+        'user.email': user.email,
+        'user.id': user.id,
+      },
+    });
+
     try {
       this.logger.log(`🔐 Iniciando login para: ${user.email}`);
 
       // 1️⃣ Buscar usuário no BD para ter dados atualizados
+      const findUserSpan = this.tracer.startSpan('find_user', {
+        parent: span,
+        attributes: {
+          'db.operation': 'findById',
+          'user.id': user.id,
+        },
+      });
+
       const currentUser = await this.userRepository.findById(user.id);
+      findUserSpan.end();
+
       if (!currentUser) {
         throw new Error('Usuário não encontrado');
       }
@@ -39,6 +58,8 @@ export class LoginUseCase {
       };
 
       // 3️⃣ Gerar Access Token
+      const tokenSpan = this.tracer.startSpan('generate_tokens', { parent: span });
+
       const accessTokenTtl = this.configService.get<number>('JWT_EXPIRATION') ?? 3600; // 1 hora default
       const accessToken = this.jwtService.sign(accessTokenPayload, {
         expiresIn: `${accessTokenTtl}s`, // ✅ Converter para string com 's' (segundos)
@@ -63,9 +84,12 @@ export class LoginUseCase {
       });
 
       this.logger.log(`✅ Refresh Token gerado com TTL ${refreshTokenTtl}s: ${currentUser.email}`);
+      tokenSpan.end();
 
       // 5️⃣ Hash do JTI usando o método estático da entity
+      const hashSpan = this.tracer.startSpan('hash_jti', { parent: span });
       const hashedJti = User.hashPassword(jti);
+      hashSpan.end();
 
       // 6️⃣ Incrementar contador de acessos (login count)
       currentUser.incrementAccessCount();
@@ -74,10 +98,18 @@ export class LoginUseCase {
       currentUser.refreshTokenHash = hashedJti;
       currentUser.refreshTokenExpires = new Date(Date.now() + refreshTokenTtl * 1000);
 
+      const updateUserSpan = this.tracer.startSpan('update_user', {
+        parent: span,
+        attributes: {
+          'db.operation': 'update',
+        },
+      });
+
       await this.userRepository.update(currentUser.id, currentUser);
 
       // 8️⃣ Incrementar contador de acessos no repositório (SQL)
       await this.userRepository.incrementAccessCount(currentUser.id);
+      updateUserSpan.end();
 
       this.logger.log(`✅ Refresh token hash e contador de acessos atualizados no BD: ${currentUser.email}`);
 
@@ -111,6 +143,13 @@ export class LoginUseCase {
       this.logger.log(`✅ Cookies httpOnly setados: ${currentUser.email}`);
 
       // 🔟 Registrar auditoria de login
+      const auditSpan = this.tracer.startSpan('audit_login', {
+        parent: span,
+        attributes: {
+          'audit.action': 'LOGIN',
+        },
+      });
+
       try {
         await this.logAuditUseCase.execute({
           userId: currentUser.id,
@@ -134,6 +173,12 @@ export class LoginUseCase {
         // Continuar mesmo se auditoria falhar (não quebra o login)
       }
 
+      auditSpan.end();
+      span.setAttributes({
+        'login.success': true,
+        'login.accessCount': currentUser.accessCount,
+      });
+
       // 1️⃣ Retornar response com access token + refresh token + accessCount
       return {
         user: currentUser.email,
@@ -145,7 +190,10 @@ export class LoginUseCase {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`❌ Erro ao fazer login: ${errorMessage}`);
+      span.recordException(error instanceof Error ? error : new Error(String(error)));
       throw error;
+    } finally {
+      span.end();
     }
   }
 }

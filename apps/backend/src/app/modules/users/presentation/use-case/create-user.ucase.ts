@@ -4,6 +4,7 @@ import { USER_REPOSITORY_TOKEN } from '../../domain/ports/user.repository.port';
 import { User, UserStatusEnum } from '../../domain/entities/user.entity';
 import { CreateUserDto } from '../../adapters/dtos/create-user.dto';
 import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
+import { getTracer } from '../../../../../app/telemetry';
 
 /**
  * CreateUserUseCase - Lógica para criar um novo usuário
@@ -17,6 +18,7 @@ import { LogAuditUseCase } from '../../../../../common/modules/audit/presentatio
 @Injectable()
 export class CreateUserUseCase {
   private readonly logger = new Logger(CreateUserUseCase.name);
+  private readonly tracer = getTracer();
 
   constructor(
     @Inject(USER_REPOSITORY_TOKEN)
@@ -25,11 +27,20 @@ export class CreateUserUseCase {
   ) {}
 
   async execute(createUserDto: CreateUserDto): Promise<User> {
+    const span = this.tracer.startSpan('create_user_process', {
+      attributes: {
+        'user.email': createUserDto.email,
+        'operation': 'CREATE_USER',
+      },
+    });
+
     try {
       // 1️⃣ Validar email único
+      const validateSpan = this.tracer.startSpan('validate_email_unique', { parent: span });
       const existingUser = await this.UserRepository.findByEmail(
         createUserDto.email,
       );
+      validateSpan.end();
 
       if (existingUser) {
         throw new BadRequestException('Email já cadastrado');
@@ -46,10 +57,13 @@ export class CreateUserUseCase {
       this.logger.log(`📝 Criando usuário: ${user.email}`);
 
       // 3️⃣ Salvar no repositório
+      const createSpan = this.tracer.startSpan('create_user_repository', { parent: span });
       const createdUser = await this.UserRepository.create(user);
+      createSpan.end();
 
       this.logger.log(`✅ Usuário criado com sucesso: ${createdUser.id}`);
 
+      const auditSpan = this.tracer.startSpan('audit_create_user', { parent: span });
       try {
         await this.logAuditUseCase.execute({
           userId: createdUser.id,
@@ -68,14 +82,24 @@ export class CreateUserUseCase {
         });
       } catch {
         // Silently fail to not break main operation
+      } finally {
+        auditSpan.end();
       }
+
+      span.setAttributes({
+        'user.id': createdUser.id,
+        'status': 201,
+      });
 
       return createdUser;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       this.logger.error(`❌ Erro ao criar usuário: ${errorMessage}`);
+      span.recordException(error instanceof Error ? error : new Error(errorMessage));
       throw error;
+    } finally {
+      span.end();
     }
   }
 }
