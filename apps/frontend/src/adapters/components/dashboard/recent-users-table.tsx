@@ -8,11 +8,11 @@ interface RecentUsersTableProps {
 
 export const RecentUsersTable: React.FC<RecentUsersTableProps> = ({ users, isLoading = false }) => {
   if (isLoading) {
-    return <div className={styles.loading}>Carregando usuários...</div>;
+    return <div className={styles.loading}>Carregando clientes...</div>;
   }
 
   if (users.length === 0) {
-    return <div className={styles.empty}>Nenhum usuário encontrado</div>;
+    return <div className={styles.empty}>Nenhum cliente encontrado</div>;
   }
 
   return (
@@ -20,16 +20,16 @@ export const RecentUsersTable: React.FC<RecentUsersTableProps> = ({ users, isLoa
       <table className={styles.table}>
         <thead>
           <tr>
-            <th>Email</th>
             <th>Nome</th>
+            <th>Empresa</th>
             <th>Data de Criação</th>
           </tr>
         </thead>
         <tbody>
           {users.map(user => (
             <tr key={user.id}>
-              <td className={styles.email}>{user.email}</td>
-              <td>{user.name}</td>
+              <td className={styles.name}>{user.name}</td>
+              <td className={styles.company}>{user.company || '-'}</td>
               <td className={styles.date}>
                 {new Date(user.createdAt).toLocaleDateString('pt-BR', {
                   year: 'numeric',

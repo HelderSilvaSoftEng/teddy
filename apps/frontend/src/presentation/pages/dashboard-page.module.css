@@ -39,6 +39,16 @@
   margin-bottom: 32px;
 }
 
+.trendSection {
+  margin-bottom: 32px;
+}
+
+.trendSection h2 {
+  margin: 0 0 16px 0;
+  font-size: 20px;
+  color: #1f2937;
+}
+
 .recentUsersSection {
   margin-bottom: 32px;
 }

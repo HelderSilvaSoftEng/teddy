@@ -11,6 +11,7 @@
 Novo dashboard com estatísticas em tempo real, usuários recentes e observabilidade completa via OpenTelemetry.
 
 **Recursos:**
+
 - 📈 Estatísticas de usuários, clientes e auditoria
 - 👥 Lista de usuários recentes
 - 🔐 Autenticação segura com JwtAuthGuard
@@ -18,11 +19,13 @@ Novo dashboard com estatísticas em tempo real, usuários recentes e observabili
 - 🎨 Interface responsiva com CSS Modules
 
 **Documentação:**
+
 - [Dashboard Guide](./DASHBOARD.md) - Guia completo
 - [Implementation Summary](./IMPLEMENTATION_SUMMARY.md) - Resumo técnico
 - [Troubleshooting](./DASHBOARD_TROUBLESHOOTING.md) - Resolução de problemas
 
 **Quick Start:**
+
 ```bash
 npm run start:backend     # Terminal 1
 npm run start:frontend    # Terminal 2
@@ -102,7 +105,7 @@ npx nx sync:check
 
 [Learn more about nx sync](https://nx.dev/reference/nx-commands#sync)
 
-## Set up CI!
+## Set up CI
 
 ### Step 1
 
@@ -145,6 +148,7 @@ Learn more:
 - [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
 
 And join the Nx community:
+
 - [Discord](https://go.nx.dev/community)
 - [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
 - [Our Youtube channel](https://www.youtube.com/@nxdevtools)

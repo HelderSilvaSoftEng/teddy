@@ -14,6 +14,12 @@ async function bootstrap() {
     console.log('🔍 [MAIN] Iniciando NestFactory.create...');
     const app = await NestFactory.create(AppModule, {
       logger: false, // ✅ Desabilitar logger padrão do NestJS
+    }).catch((error: unknown) => {
+      console.error('❌ [MAIN] Erro ao criar NestFactory:', error);
+      if (error instanceof Error) {
+        console.error('Stack:', error.stack);
+      }
+      throw error;
     });
     console.log('✅ [MAIN] NestFactory.create completo');
 
@@ -77,12 +83,15 @@ async function bootstrap() {
   loggerService.log(`🚀 Application is running on: http://localhost:${port}/${globalPrefix}`, 'Bootstrap');
   loggerService.log(`📚 Swagger documentation: http://localhost:${port}/docs`, 'Bootstrap');
   } catch (error) {
-    console.error('❌ [MAIN] Erro durante bootstrap:', error);
-    throw error;
+    console.error('❌ [MAIN] Erro durante bootstrap:');
+    if (error instanceof Error) {
+      console.error('  Mensagem:', error.message);
+      console.error('  Stack:', error.stack);
+    } else {
+      console.error('  Erro desconhecido:', error);
+    }
+    process.exit(1);
   }
 }
 
-bootstrap().catch((error) => {
-  console.error('❌ Failed to start application:', error);
-  process.exit(1);
-});
+bootstrap();

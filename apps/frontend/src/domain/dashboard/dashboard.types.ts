@@ -7,7 +7,13 @@ export interface DashboardStatistics {
 
 export interface RecentUser {
   id: string;
-  email: string;
   name: string;
+  company: string | null;
   createdAt: Date;
+}
+
+export interface CustomerTrendData {
+  month?: string;
+  day?: string;
+  total: number;
 }

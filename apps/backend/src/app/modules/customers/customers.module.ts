@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Customer } from './domain/entities';
 import { CustomerRepository } from './infra/repositories';
+import { CustomerQueryHandler } from './infra/query-handlers/customer-query.handler';
+import { CustomerTrendQueryHandler } from './infra/query-handlers/customer-trend-query.handler';
 import { CustomerMapper } from './infra/mappers';
 import { CustomerController } from './adapters/controllers/customer.controller';
 import {
@@ -12,7 +14,8 @@ import {
   UpdateCustomerUseCase,
   DeleteCustomerUseCase,
 } from './presentation/use-cases';
-import { CUSTOMER_REPOSITORY_TOKEN } from './domain/ports';
+import { CUSTOMER_REPOSITORY_TOKEN, CUSTOMER_QUERY_PORT } from './domain/ports';
+import { CUSTOMER_TREND_QUERY_PORT } from './domain/ports/customer-trend-query.port';
 import { AuditModule } from '../../../common/modules/audit';
 
 @Module({
@@ -20,6 +23,8 @@ import { AuditModule } from '../../../common/modules/audit';
   controllers: [CustomerController],
   providers: [
     CustomerMapper,
+    CustomerQueryHandler,
+    CustomerTrendQueryHandler,
     CreateCustomerUseCase,
     FindCustomerByIdUseCase,
     FindCustomerByUserIdUseCase,
@@ -30,9 +35,19 @@ import { AuditModule } from '../../../common/modules/audit';
       provide: CUSTOMER_REPOSITORY_TOKEN,
       useClass: CustomerRepository,
     },
+    {
+      provide: CUSTOMER_QUERY_PORT,
+      useClass: CustomerQueryHandler,
+    },
+    {
+      provide: CUSTOMER_TREND_QUERY_PORT,
+      useClass: CustomerTrendQueryHandler,
+    },
   ],
   exports: [
     CUSTOMER_REPOSITORY_TOKEN,
+    CUSTOMER_QUERY_PORT,
+    CUSTOMER_TREND_QUERY_PORT,
     CustomerMapper,
     CreateCustomerUseCase,
     FindCustomerByIdUseCase,

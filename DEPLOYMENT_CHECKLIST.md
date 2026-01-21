@@ -3,6 +3,7 @@
 ## Pre-Deployment Verification
 
 ### Code Quality
+
 - [ ] Compilação sem erros: `npx nx build backend`
 - [ ] Compilação sem erros: `npx nx build frontend`
 - [ ] Sem warnings TypeScript
@@ -10,6 +11,7 @@
 - [ ] Testes passando: `npx nx test`
 
 ### Security
+
 - [ ] JwtAuthGuard em todos endpoints
 - [ ] @CurrentUser() decorator em use
 - [ ] Sem hardcoded secrets
@@ -17,6 +19,7 @@
 - [ ] Environment variables definidas
 
 ### Backend Files
+
 - [ ] ✅ dashboard.repository.port.ts
 - [ ] ✅ dashboard.repository.ts
 - [ ] ✅ dashboard-statistics.entity.ts
@@ -29,6 +32,7 @@
 - [ ] ✅ app.module.ts (DashboardModule imported)
 
 ### Frontend Files
+
 - [ ] ✅ dashboard.types.ts
 - [ ] ✅ dashboard.service.ts
 - [ ] ✅ dashboard-page.tsx
@@ -38,6 +42,7 @@
 - [ ] ✅ sidebar.tsx (botão Dashboard adicionado)
 
 ### Documentation
+
 - [ ] ✅ DASHBOARD.md
 - [ ] ✅ IMPLEMENTATION_SUMMARY.md
 - [ ] ✅ DASHBOARD_TROUBLESHOOTING.md
@@ -48,6 +53,7 @@
 ## Database Preparation
 
 ### Verify Schema
+
 ```sql
 -- Verifique se tabelas existem
 SELECT table_name FROM information_schema.tables 
@@ -60,6 +66,7 @@ WHERE table_schema = 'public';
 ```
 
 ### Create Test Data (Optional)
+
 ```sql
 -- Se banco vazio, adicione dados de teste
 INSERT INTO users (id, email, name, created_at) 
@@ -74,6 +81,7 @@ VALUES (gen_random_uuid(), (SELECT id FROM users LIMIT 1), 'Test Customer', NOW(
 ## Environment Configuration
 
 ### Backend (.env)
+
 ```bash
 # Database
 DATABASE_URL=postgresql://user:password@host:5432/db
@@ -89,6 +97,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/v1/traces
 ```
 
 ### Frontend (.env or .env.local)
+
 ```bash
 # API Endpoint
 VITE_API_URL=http://localhost:3000
@@ -102,6 +111,7 @@ VITE_JWT_STORAGE_KEY=accessToken
 ## Service Dependencies
 
 ### Docker Services Required
+
 ```bash
 # Database
 postgres:15-alpine
@@ -117,6 +127,7 @@ grafana:latest
 ```
 
 ### Verification
+
 ```bash
 docker-compose up -d
 docker ps
@@ -129,6 +140,7 @@ docker ps
 ## API Endpoints Verification
 
 ### Authentication Required
+
 ```bash
 # Get Stats
 curl -H "Authorization: Bearer TOKEN" \
@@ -142,6 +154,7 @@ curl -H "Authorization: Bearer TOKEN" \
 ```
 
 ### Expected Response Codes
+
 | Endpoint | Code | Meaning |
 |----------|------|---------|
 | /api/dashboard/stats | 200 | Success |
@@ -154,6 +167,7 @@ curl -H "Authorization: Bearer TOKEN" \
 ## Frontend Access Verification
 
 ### Routes
+
 - [ ] /login - Login page (public)
 - [ ] / - Home/Customers (protected)
 - [ ] /dashboard - Dashboard (protected) ✅ NEW
@@ -161,6 +175,7 @@ curl -H "Authorization: Bearer TOKEN" \
 - [ ] /selected-customers - Selected Customers (protected)
 
 ### Authentication Flow
+
 1. [ ] Usuário em /login → credenciais → token
 2. [ ] Token em localStorage
 3. [ ] useAuth() hook retorna isAuthenticated=true
@@ -168,6 +183,7 @@ curl -H "Authorization: Bearer TOKEN" \
 5. [ ] /dashboard carrega dados
 
 ### UI Components
+
 - [ ] StatCard renders
 - [ ] RecentUsersTable renders
 - [ ] Dashboard sidebar button visible
@@ -178,6 +194,7 @@ curl -H "Authorization: Bearer TOKEN" \
 ## Observability Validation
 
 ### Jaeger Setup
+
 ```bash
 # Jaeger UI accessible
 curl http://localhost:16686/status
@@ -189,6 +206,7 @@ open http://localhost:16686
 ```
 
 ### Trace Verification
+
 1. [ ] Acesse Jaeger UI
 2. [ ] Service dropdown → select "teddy-backend"
 3. [ ] Operation dropdown → select operation
@@ -199,6 +217,7 @@ open http://localhost:16686
 6. [ ] Verifique atributos customizados
 
 ### Logs Check
+
 ```bash
 # Backend logs
 npm run start:backend 2>&1 | grep -E "(DashboardController|GetDashboardStatsUseCase)"
@@ -213,6 +232,7 @@ npm run start:backend 2>&1 | grep -E "(DashboardController|GetDashboardStatsUseC
 ## Performance Checks
 
 ### Load Testing (Optional)
+
 ```bash
 # Teste com 10 requisições
 for i in {1..10}; do
@@ -224,6 +244,7 @@ done
 ```
 
 ### Database Query Performance
+
 ```bash
 # Verifique query execution time
 EXPLAIN ANALYZE
@@ -237,6 +258,7 @@ SELECT COUNT(*) FROM users WHERE deleted_at IS NULL;
 ## Backup & Rollback Plan
 
 ### Before Deployment
+
 ```bash
 # Backup do código
 git tag v-dashboard-$(date +%Y%m%d)
@@ -247,6 +269,7 @@ pg_dump teddy_db > backup_$(date +%Y%m%d).sql
 ```
 
 ### Rollback if Needed
+
 ```bash
 # Se houver erro, reverter:
 git revert --no-edit HEAD
@@ -261,6 +284,7 @@ npx nx build frontend
 ## Post-Deployment Verification
 
 ### Smoke Tests
+
 ```bash
 # 1. Acesse frontend
 open http://localhost:5173/dashboard
@@ -276,6 +300,7 @@ open http://localhost:16686
 ```
 
 ### User Acceptance Testing (UAT)
+
 - [ ] Usuário pode fazer login
 - [ ] Usuário vê Dashboard no menu
 - [ ] Dashboard carrega estatísticas
@@ -300,6 +325,7 @@ open http://localhost:16686
 ## Commit & Release
 
 ### Git Workflow
+
 ```bash
 # Criar feature branch
 git checkout -b feat/dashboard
@@ -339,6 +365,7 @@ git push origin feat/dashboard
 ## Final Checklist
 
 ### Before Going Live
+
 - [ ] Todos os testes passando
 - [ ] Build sem warnings
 - [ ] Documentação completa
@@ -351,6 +378,7 @@ git push origin feat/dashboard
 - [ ] Logs estruturados
 
 ### Go/No-Go Decision
+
 ```
 ✅ All items checked = GO
 ❌ Any item missing = NO-GO (fix first)
@@ -361,6 +389,7 @@ git push origin feat/dashboard
 ## Support & Escalation
 
 ### If Issues Arise
+
 1. [ ] Check logs: Backend, Frontend, Docker
 2. [ ] Verify database connectivity
 3. [ ] Verify token validity
@@ -369,6 +398,7 @@ git push origin feat/dashboard
 6. [ ] Review DASHBOARD_TROUBLESHOOTING.md
 
 ### Contacts
+
 - Backend Team: [contact]
 - Frontend Team: [contact]
 - DevOps Team: [contact]

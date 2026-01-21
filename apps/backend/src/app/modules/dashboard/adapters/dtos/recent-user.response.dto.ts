@@ -1,13 +1,13 @@
-export class RecentUserResponseDto {
+export class RecentCustomerResponseDto {
   id: string;
-  email: string;
   name: string;
+  email: string;
   createdAt: Date;
 
-  constructor(data: { id: string; email: string; name: string; createdAt: Date }) {
+  constructor(data: { id: string; name: string; email: string; createdAt: Date }) {
     this.id = data.id;
-    this.email = data.email;
     this.name = data.name;
+    this.email = data.email;
     this.createdAt = data.createdAt;
   }
 }

@@ -43,6 +43,15 @@
   color: #3b82f6;
 }
 
+.name {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.company {
+  color: #6b7280;
+}
+
 .date {
   color: #6b7280;
   font-size: 13px;

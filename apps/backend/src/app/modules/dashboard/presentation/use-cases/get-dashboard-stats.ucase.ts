@@ -26,44 +26,35 @@ export class GetDashboardStatsUseCase {
     try {
       this.logger.log(`[GetDashboardStatsUseCase] Iniciando obtenção de estatísticas para usuário: ${user.id}`);
 
-      // 1️⃣ Query de total de usuários
-      const dbQueryUsersSpan = this.tracer.startSpan('db_query_users', { parent: span });
-      const totalUsers = await this.dashboardRepository.getTotalUsers();
-      dbQueryUsersSpan.end();
-
-      // 2️⃣ Query de total de clientes
-      const dbQueryCustomersSpan = this.tracer.startSpan('db_query_customers', { parent: span });
-      const totalCustomers = await this.dashboardRepository.getTotalCustomers();
-      dbQueryCustomersSpan.end();
-
-      // 3️⃣ Query de total de auditoria
-      const dbQueryAuditsSpan = this.tracer.startSpan('db_query_audits', { parent: span });
-      const totalAuditLogs = await this.dashboardRepository.getTotalAuditLogs();
-      dbQueryAuditsSpan.end();
+      // 1️⃣ Query de estatísticas
+      const statsSpan = this.tracer.startSpan('query_dashboard_stats', { parent: span });
+      const stats = await this.dashboardRepository.getDashboardStats();
+      statsSpan.end();
 
       const result = new DashboardStatsResponseDto({
-        totalUsers,
-        totalCustomers,
-        totalAuditLogs,
+        totalUsers: stats.totalUsers,
+        totalCustomers: stats.totalCustomers,
+        totalAuditLogs: stats.totalAuditLogs,
         retrievedAt: new Date(),
       });
 
       span.setAttributes({
         'status': 200,
-        'total.users': totalUsers,
-        'total.customers': totalCustomers,
-        'total.audits': totalAuditLogs,
+        'total.users': stats.totalUsers,
+        'total.customers': stats.totalCustomers,
+        'total.audits': stats.totalAuditLogs,
       });
 
       this.logger.log(
-        `[GetDashboardStatsUseCase] Estatísticas obtidas com sucesso - Usuários: ${totalUsers}, ` +
-        `Clientes: ${totalCustomers}, Auditorias: ${totalAuditLogs}`,
+        `[GetDashboardStatsUseCase] Estatísticas obtidas com sucesso - Usuários: ${stats.totalUsers}, ` +
+        `Clientes: ${stats.totalCustomers}, Auditorias: ${stats.totalAuditLogs}`,
       );
 
       return result;
-    } catch (error) {
-      this.logger.error(`[GetDashboardStatsUseCase] Erro ao obter estatísticas: ${error.message}`);
-      span.recordException(error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`[GetDashboardStatsUseCase] Erro ao obter estatísticas: ${errorMessage}`);
+      span.recordException(error instanceof Error ? error : new Error(String(error)));
       throw error;
     } finally {
       span.end();

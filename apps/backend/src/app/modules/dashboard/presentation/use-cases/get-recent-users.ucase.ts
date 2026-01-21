@@ -2,12 +2,12 @@ import { Injectable, Logger, Inject } from '@nestjs/common';
 import { getTracer } from '../../../../../app/telemetry';
 import type { IDashboardRepositoryPort } from '../../domain/ports/dashboard.repository.port';
 import { DASHBOARD_REPOSITORY_TOKEN } from '../../domain/ports/dashboard.repository.port';
-import { RecentUserResponseDto } from '../../adapters/dtos/recent-user.response.dto';
+import { RecentCustomerResponseDto } from '../../adapters/dtos/recent-user.response.dto';
 import type { ICurrentUser } from '../../../authentication/domain/types';
 
 @Injectable()
-export class GetRecentUsersUseCase {
-  private readonly logger = new Logger(GetRecentUsersUseCase.name);
+export class GetRecentCustomersUseCase {
+  private readonly logger = new Logger(GetRecentCustomersUseCase.name);
   private readonly tracer = getTracer();
 
   constructor(
@@ -15,45 +15,46 @@ export class GetRecentUsersUseCase {
     private readonly dashboardRepository: IDashboardRepositoryPort,
   ) {}
 
-  async execute(user: ICurrentUser, limit = 5): Promise<RecentUserResponseDto[]> {
-    const span = this.tracer.startSpan('get_recent_users_process', {
+  async execute(user: ICurrentUser, limit = 5): Promise<RecentCustomerResponseDto[]> {
+    const span = this.tracer.startSpan('get_recent_customers_process', {
       attributes: {
         'user.id': user.id,
-        'operation': 'GET_RECENT_USERS',
+        'operation': 'GET_RECENT_CUSTOMERS',
         'limit': limit,
       },
     });
 
     try {
-      this.logger.log(`[GetRecentUsersUseCase] Obtendo ${limit} usuários recentes para usuário: ${user.id}`);
+      this.logger.log(`[GetRecentCustomersUseCase] Obtendo ${limit} clientes recentes para usuário: ${user.id}`);
 
-      // 1️⃣ Query de usuários recentes
-      const dbQuerySpan = this.tracer.startSpan('db_query_recent_users', { parent: span });
-      const recentUsers = await this.dashboardRepository.getRecentUsers(limit);
+      // 1️⃣ Query de clientes recentes
+      const dbQuerySpan = this.tracer.startSpan('query_recent_customers', { parent: span });
+      const recentCustomers = await this.dashboardRepository.getRecentCustomers(limit);
       dbQuerySpan.end();
 
-      const result = recentUsers.map(
-        user => new RecentUserResponseDto({
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          createdAt: user.createdAt,
+      const result = recentCustomers.map(
+        customer => new RecentCustomerResponseDto({
+          id: customer.id,
+          name: customer.name,
+          email: customer.email,
+          createdAt: customer.createdAt,
         }),
       );
 
       span.setAttributes({
         'status': 200,
-        'users.count': result.length,
+        'customers.count': result.length,
       });
 
       this.logger.log(
-        `[GetRecentUsersUseCase] ${result.length} usuários recentes obtidos com sucesso`,
+        `[GetRecentCustomersUseCase] ${result.length} clientes recentes obtidos com sucesso`,
       );
 
       return result;
-    } catch (error) {
-      this.logger.error(`[GetRecentUsersUseCase] Erro ao obter usuários recentes: ${error.message}`);
-      span.recordException(error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`[GetRecentCustomersUseCase] Erro ao obter clientes recentes: ${errorMessage}`);
+      span.recordException(error instanceof Error ? error : new Error(String(error)));
       throw error;
     } finally {
       span.end();

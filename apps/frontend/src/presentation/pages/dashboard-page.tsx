@@ -1,17 +1,21 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/auth.context';
+import { Header } from '../../adapters/components/common/header';
 import { dashboardService } from '../../infra/services/dashboard.service';
 import type { DashboardStatistics, RecentUser } from '../../domain/dashboard/dashboard.types';
 import { StatCard } from '../../adapters/components/dashboard/stat-card';
 import { RecentUsersTable } from '../../adapters/components/dashboard/recent-users-table';
+import { CustomerTrendChart } from '../../adapters/components/dashboard/customer-trend-chart';
+import { TrendPeriodToggle } from '../../adapters/components/dashboard/trend-period-toggle';
 import styles from './dashboard-page.module.css';
 
 export const DashboardPage: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
   const [stats, setStats] = useState<DashboardStatistics | null>(null);
-  const [recentUsers, setRecentUsers] = useState<RecentUser[]>([]);
+  const [recentCustomers, setRecentCustomers] = useState<RecentUser[]>([]);
+  const [trendPeriod, setTrendPeriod] = useState<'monthly' | 'daily'>('monthly');
   const [isLoadingStats, setIsLoadingStats] = useState(true);
-  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -23,22 +27,22 @@ export const DashboardPage: React.FC = () => {
       try {
         setError(null);
         setIsLoadingStats(true);
-        setIsLoadingUsers(true);
+        setIsLoadingCustomers(true);
 
-        const [statsData, usersData] = await Promise.all([
+        const [statsData, customersData] = await Promise.all([
           dashboardService.getStats(),
-          dashboardService.getRecentUsers(5),
+          dashboardService.getRecentCustomers(5),
         ]);
 
         setStats(statsData);
-        setRecentUsers(usersData);
+        setRecentCustomers(customersData);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar dashboard';
         setError(errorMessage);
         console.error('Erro ao carregar dados do dashboard:', err);
       } finally {
         setIsLoadingStats(false);
-        setIsLoadingUsers(false);
+        setIsLoadingCustomers(false);
       }
     };
 
@@ -54,19 +58,20 @@ export const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className={styles.page}>
-      <header className={styles.header}>
-        <h1>📊 Dashboard</h1>
-        <p className={styles.subtitle}>Bem-vindo, {user?.email}!</p>
-      </header>
+    <>
+      <Header />
+      <div className={styles.page}>
+        <header className={styles.header}>
+          <h1>📊 Dashboard</h1>
+        </header>
 
-      {error && (
-        <div className={styles.error}>
-          <span>⚠️ {error}</span>
-        </div>
-      )}
+        {error && (
+          <div className={styles.error}>
+            <span>⚠️ {error}</span>
+          </div>
+        )}
 
-      <section className={styles.statsGrid}>
+        <section className={styles.statsGrid}>
         <StatCard
           title="Total de Usuários"
           value={stats?.totalUsers ?? 0}
@@ -85,17 +90,17 @@ export const DashboardPage: React.FC = () => {
           icon="📋"
           color="purple"
         />
-        <StatCard
-          title="Status"
-          value={stats ? 200 : 0}
-          icon="✅"
-          color="orange"
-        />
+      </section>
+
+      <section className={styles.trendSection}>
+        <h2>📈 Tendência de Clientes</h2>
+        <TrendPeriodToggle period={trendPeriod} onPeriodChange={setTrendPeriod} />
+        <CustomerTrendChart period={trendPeriod} />
       </section>
 
       <section className={styles.recentUsersSection}>
-        <h2>Usuários Recentes</h2>
-        <RecentUsersTable users={recentUsers} isLoading={isLoadingUsers} />
+        <h2>Clientes Recentes</h2>
+        <RecentUsersTable users={recentCustomers} isLoading={isLoadingCustomers} />
       </section>
 
       {stats && (
@@ -103,6 +108,7 @@ export const DashboardPage: React.FC = () => {
           <p>Dados atualizados em: {new Date(stats.retrievedAt).toLocaleString('pt-BR')}</p>
         </footer>
       )}
-    </div>
+      </div>
+    </>
   );
 };

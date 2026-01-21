@@ -13,10 +13,13 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     // Extrair token de cookie ou Authorization header
     const token = this.extractToken(request);
 
-    if (token) {
-      // Se encontrou token em cookie ou header, adiciona ao Authorization header
+    if (token && token !== 'null' && token !== 'undefined' && token.trim() !== '') {
+      // Se encontrou token válido, adiciona ao Authorization header
       // para que a estratégia JWT do Passport possa processar
       request.headers.authorization = `Bearer ${token}`;
+      this.logger.debug(`🔑 Authorization header setado com token: ${token.substring(0, 20)}...`);
+    } else {
+      this.logger.warn(`⚠️ Token inválido ou não encontrado: "${token}"`);
     }
 
     return request;
@@ -37,8 +40,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     // Prioridade 2: Authorization Header (para APIs externas)
     const authHeader = request.headers?.authorization;
     if (authHeader?.startsWith('Bearer ')) {
-      this.logger.debug('✅ Token extraído do header Authorization');
-      return authHeader.substring(7);
+      const token = authHeader.substring(7);
+      // Verificar se o token não é a string literal "null"
+      if (token && token !== 'null' && token.length > 0) {
+        this.logger.debug('✅ Token extraído do header Authorization');
+        return token;
+      }
     }
 
     this.logger.warn('⚠️ Token não encontrado em cookie ou Authorization header');
