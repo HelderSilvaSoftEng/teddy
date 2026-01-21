@@ -41,6 +41,7 @@ export class CustomerRepository implements ICustomerRepositoryPort {
     }
 
     const [data, total] = await query
+      .orderBy('customer.name', 'ASC')
       .skip(skip)
       .take(take)
       .getManyAndCount();

@@ -1,10 +1,98 @@
-import { useSelectedCustomers } from '../../../presentation';
+import React, { useState, useEffect } from 'react';
+import { Customer } from '../../../domain';
+import { ListCustomersUseCase, CreateCustomerUseCase, UpdateCustomerUseCase, DeleteCustomerUseCase } from '../../../application';
+import { customerRepository } from '../../../infra';
 import { Header, Sidebar } from '../common';
 import { CustomerCard } from '../customer-card';
+import { UpdateCustomerModal } from '../modals/UpdateCustomerModal';
+import { ConfirmDeleteModal } from '../modals/confirm-delete-modal';
 import './customers-page.css';
 
+const ITEMS_PER_PAGE = 16;
+
 export function SelectedCustomersPage() {
-  const { selectedCustomers } = useSelectedCustomers();
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [total, setTotal] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null);
+  const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
+
+  const loadCustomers = async (page: number) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const skip = (page - 1) * ITEMS_PER_PAGE;
+      const useCase = new ListCustomersUseCase(customerRepository);
+      const result = await useCase.execute({ skip, take: ITEMS_PER_PAGE, search: 'SELECTED', searchField: 'status' });
+      setCustomers(result.data.sort((a, b) => (a.name || '').localeCompare(b.name || '')));
+      setTotal(result.total);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao carregar clientes selecionados';
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCustomers(currentPage);
+  }, [currentPage]);
+
+  const handleEditCustomer = (customer: Customer) => {
+    setCustomerToEdit(customer);
+    setShowUpdateModal(true);
+  };
+
+  const handleUpdateCustomer = async (data: Partial<Customer>) => {
+    if (!customerToEdit) return;
+    try {
+      const useCase = new UpdateCustomerUseCase(customerRepository);
+      const updatedCustomer = await useCase.execute(customerToEdit.id, data);
+      if (updatedCustomer) {
+        setCustomers((prev) =>
+          prev.map((c) => (c.id === customerToEdit.id ? updatedCustomer : c))
+        );
+      }
+      setShowUpdateModal(false);
+      setCustomerToEdit(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao atualizar cliente';
+      setError(message);
+    }
+  };
+
+  const handleDeleteCustomer = async () => {
+    if (!customerToDelete) return;
+    try {
+      const useCase = new DeleteCustomerUseCase(customerRepository);
+      await useCase.execute(customerToDelete.id);
+      setCustomers((prev) => prev.filter((c) => c.id !== customerToDelete.id));
+      setCustomerToDelete(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao deletar cliente';
+      setError(message);
+    }
+  };
+
+  const handleDeselectCustomer = async (customer: Customer) => {
+    try {
+      const useCase = new UpdateCustomerUseCase(customerRepository);
+      const updatedCustomer = await useCase.execute(customer.id, { status: 'ACTIVE' });
+      if (updatedCustomer) {
+        setCustomers((prev) =>
+          prev.filter((c) => c.id !== customer.id)
+        );
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao desselecionar cliente';
+      setError(message);
+    }
+  };
+
+  const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
   return (
     <div className="customers-layout">
@@ -14,24 +102,89 @@ export function SelectedCustomersPage() {
       <div className="customers-content">
         <div className="customers-header">
           <h1>⭐ Clientes Selecionados</h1>
-          <span className="customer-count">{selectedCustomers.length} clientes selecionados</span>
+          <span className="customer-count">{total} clientes selecionados</span>
         </div>
 
-        {selectedCustomers.length === 0 ? (
-          <div className="no-customers">Nenhum cliente selecionado</div>
+        {error && <div className="error-message">{error}</div>}
+
+        {isLoading ? (
+          <div className="loading">Carregando clientes selecionados...</div>
         ) : (
-          <div className="customers-grid">
-            {selectedCustomers.map((customer) => (
-              <CustomerCard
-                key={customer.id}
-                customer={customer}
-                onEdit={() => {}}
-                onDelete={() => {}}
-              />
-            ))}
-          </div>
+          <>
+            {customers.length === 0 ? (
+              <div className="no-customers">Nenhum cliente selecionado</div>
+            ) : (
+              <>
+                <div className="customers-grid">
+                  {customers.map((customer, index) => (
+                    <CustomerCard
+                      key={customer.id || index}
+                      customer={customer}
+                      onEdit={handleEditCustomer}
+                      onDelete={() => setCustomerToDelete(customer)}
+                      onSelect={handleDeselectCustomer}
+                    />
+                  ))}
+                </div>
+
+                {totalPages > 1 && (
+                  <div className="pagination">
+                    <button
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(1)}
+                    >
+                      «
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((page) => {
+                        const distance = Math.abs(page - currentPage);
+                        return distance <= 2 || page === 1 || page === totalPages;
+                      })
+                      .map((page, index, arr) => (
+                        <React.Fragment key={page}>
+                          {index > 0 && arr[index - 1] !== page - 1 && <span className="pagination-dots">...</span>}
+                          <button
+                            className={currentPage === page ? 'active' : ''}
+                            onClick={() => setCurrentPage(page)}
+                          >
+                            {page}
+                          </button>
+                        </React.Fragment>
+                      ))}
+                    <button
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage(totalPages)}
+                    >
+                      »
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </>
         )}
       </div>
+
+      {showUpdateModal && customerToEdit && (
+        <UpdateCustomerModal
+          isOpen={showUpdateModal}
+          customer={customerToEdit}
+          onClose={() => {
+            setShowUpdateModal(false);
+            setCustomerToEdit(null);
+          }}
+          onSubmit={handleUpdateCustomer}
+        />
+      )}
+
+      {customerToDelete && (
+        <ConfirmDeleteModal
+          customer={customerToDelete}
+          onConfirm={handleDeleteCustomer}
+          onCancel={() => setCustomerToDelete(null)}
+        />
+      )}
     </div>
   );
 }
+

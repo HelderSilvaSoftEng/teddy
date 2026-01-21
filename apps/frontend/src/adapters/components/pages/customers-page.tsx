@@ -91,6 +91,21 @@ export function CustomersPage() {
     }
   };
 
+  const handleSelectCustomer = async (customer: Customer) => {
+    try {
+      const useCase = new UpdateCustomerUseCase(customerRepository);
+      const updatedCustomer = await useCase.execute(customer.id, { status: 'SELECTED' });
+      if (updatedCustomer) {
+        setCustomers((prev) =>
+          prev.filter((c) => c.id !== customer.id)
+        );
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao selecionar cliente';
+      setError(message);
+    }
+  };
+
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
   return (
@@ -120,6 +135,7 @@ export function CustomersPage() {
                     customer={customer}
                     onEdit={handleEditCustomer}
                     onDelete={() => setCustomerToDelete(customer)}
+                    onSelect={handleSelectCustomer}
                   />
                 ))
               )}

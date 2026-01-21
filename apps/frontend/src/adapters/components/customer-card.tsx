@@ -5,9 +5,10 @@ interface CustomerCardProps {
   customer: Customer;
   onEdit: (customer: Customer) => void;
   onDelete: (customer: Customer) => void;
+  onSelect?: (customer: Customer) => void;
 }
 
-export function CustomerCard({ customer, onEdit, onDelete }: CustomerCardProps) {
+export function CustomerCard({ customer, onEdit, onDelete, onSelect }: CustomerCardProps) {
   const formatSalary = (salary: number | undefined) => {
     if (!salary) return 'N/A';
     return new Intl.NumberFormat('pt-BR', {
@@ -29,11 +30,13 @@ export function CustomerCard({ customer, onEdit, onDelete }: CustomerCardProps) 
       </div>
       <div className="customer-actions">
         <button 
-          className="action-btn add-btn" 
-          onClick={() => onEdit(customer)}
-          title="Adicionar"
+          className={`action-btn ${customer.status === 'SELECTED' ? 'remove-btn' : 'add-btn'}`}
+          onClick={() => onSelect?.(customer)}
+          title={customer.status === 'SELECTED' ? 'Remover' : 'Selecionar'}
         >
-          <span className="material-symbols-outlined">add</span>
+          <span className="material-symbols-outlined">
+            {customer.status === 'SELECTED' ? 'remove' : 'add'}
+          </span>
         </button>
         <button 
           className="action-btn edit-btn" 
