@@ -11,6 +11,7 @@ export const API_CONFIG = {
       ME: '/api/auth/me',
       RECOVERY_PASSWORD: '/api/auth/recovery-password',
       RESET_PASSWORD: '/api/auth/reset-password',
+      INCREMENT_ACCESS: '/api/auth/increment-access',
     },
     CUSTOMERS: {
       BASE: '/api/v1/customers',

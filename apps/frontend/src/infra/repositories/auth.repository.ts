@@ -1,4 +1,5 @@
 import { ILoginRequest, ITokenResponse, IRecoveryPasswordRequest, IRecoveryPasswordResponse, IResetPasswordRequest, IResetPasswordResponse, ICurrentUser } from '../../domain/types/index';
+import { IAuthRepository } from '../../domain/repositories/auth.repository';
 import { httpClient, API_CONFIG } from '../http/http-client';
 import { tokenStorage } from '../storage/token.storage';
 
@@ -43,6 +44,10 @@ export class AuthRepository implements IAuthRepository {
     } finally {
       tokenStorage.clear();
     }
+  }
+
+  async incrementAccessCount(): Promise<void> {
+    await httpClient.post(API_CONFIG.ENDPOINTS.AUTH.INCREMENT_ACCESS, {});
   }
 }
 

@@ -19,6 +19,7 @@ export function SelectedCustomersPage() {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null);
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
+  const [isClearing, setIsClearing] = useState(false);
 
   const loadCustomers = async (page: number) => {
     try {
@@ -92,6 +93,33 @@ export function SelectedCustomersPage() {
     }
   };
 
+  const handleClearAllSelected = async () => {
+    if (customers.length === 0) return;
+    
+    setIsClearing(true);
+    try {
+      const useCase = new UpdateCustomerUseCase(customerRepository);
+      
+      // Atualiza todos os clientes SELECTED para ACTIVE em paralelo
+      const updatePromises = customers.map((customer) =>
+        useCase.execute(customer.id, { status: 'ACTIVE' })
+      );
+      
+      await Promise.all(updatePromises);
+      
+      // Limpa a lista local
+      setCustomers([]);
+      setTotal(0);
+      setCurrentPage(1);
+      setError(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao limpar clientes selecionados';
+      setError(message);
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
   return (
@@ -162,6 +190,16 @@ export function SelectedCustomersPage() {
               </>
             )}
           </>
+        )}
+
+        {customers.length > 0 && (
+          <button 
+            className="clear-all-btn" 
+            onClick={handleClearAllSelected}
+            disabled={isClearing}
+          >
+            {isClearing ? 'Limpando...' : 'Limpar clientes selecionados'}
+          </button>
         )}
       </div>
 

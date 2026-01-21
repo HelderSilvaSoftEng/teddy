@@ -3,6 +3,7 @@ export interface ICurrentUser {
   id: string;
   email: string;
   name?: string;
+  accessCount?: number;
 }
 
 export interface ILoginRequest {
@@ -12,7 +13,10 @@ export interface ILoginRequest {
 
 export interface ITokenResponse {
   accessToken: string;
-  user: ICurrentUser;
+  refreshToken: string;
+  user?: ICurrentUser;
+  email?: string;
+  accessCount?: number;
 }
 
 export interface IRecoveryPasswordRequest {

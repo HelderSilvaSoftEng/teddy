@@ -118,6 +118,31 @@
   background-color: #ff5500;
 }
 
+.clear-all-btn {
+  width: 100%;
+  padding: 1rem;
+  background-color: transparent;
+  color: #ff6633;
+  border: 2px solid #ff6633;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 1.5rem;
+}
+
+.clear-all-btn:hover:not(:disabled) {
+  background-color: #ff6633;
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 102, 51, 0.3);
+}
+
+.clear-all-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 @media (max-width: 768px) {
   .customers-content {
     padding: 1rem;

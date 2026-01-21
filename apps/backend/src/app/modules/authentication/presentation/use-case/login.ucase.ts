@@ -108,12 +108,13 @@ export class LoginUseCase {
 
       this.logger.log(`✅ Cookies httpOnly setados: ${currentUser.email}`);
 
-      // 🔟 Retornar response com access token + refresh token
+      // 🔟 Retornar response com access token + refresh token + accessCount
       return {
         user: currentUser.email,
         email: currentUser.email,
         accessToken: accessToken,
         refreshToken: refreshToken,
+        accessCount: currentUser.accessCount ?? 0,
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);

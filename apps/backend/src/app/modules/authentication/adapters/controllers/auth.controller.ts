@@ -9,6 +9,7 @@ import {
   Logger,
   Req,
   BadRequestException,
+  Inject,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -36,6 +37,8 @@ import { RecoveryPasswordResponseDto } from '../../adapters/dtos/recovery-passwo
 import { ResetPasswordDto } from '../../adapters/dtos/reset-password.dto';
 import { ResetPasswordResponseDto } from '../../adapters/dtos/reset-password-response.dto';
 import type { ICurrentUser } from '../../domain/types';
+import type { IUserRepositoryPort } from '../../../users/domain/ports/user.repository.port';
+import { USER_REPOSITORY_TOKEN } from '../../../users/domain/ports/user.repository.port';
 
 @Controller('auth')
 @ApiTags('🔐 Autenticação')
@@ -48,6 +51,8 @@ export class AuthController {
     private readonly logoutUseCase: LogoutUseCase,
     private readonly recoveryPasswordUseCase: RecoveryPasswordUseCase,
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
+    @Inject(USER_REPOSITORY_TOKEN)
+    private readonly userRepository: IUserRepositoryPort,
   ) {}
 
   @Post('login')
@@ -160,7 +165,7 @@ export class AuthController {
   @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Obter usuário logado',
-    description: 'Retorna dados do usuário autenticado. Requer access token válido.',
+    description: 'Retorna dados do usuário autenticado incluindo contador de acessos. Requer access token válido.',
   })
   @ApiResponse({
     status: 200,
@@ -171,6 +176,7 @@ export class AuthController {
         id: { type: 'string' },
         email: { type: 'string' },
         name: { type: 'string', nullable: true },
+        accessCount: { type: 'number' },
       },
     },
   })
@@ -180,7 +186,18 @@ export class AuthController {
   })
   async getMe(@CurrentUser() user: ICurrentUser): Promise<ICurrentUser> {
     this.logger.debug(`📍 GET /auth/me chamado para: ${user.email}`);
-    return user;
+    // Buscar usuário completo do banco de dados para incluir accessCount
+    const fullUser = await this.userRepository.findById(user.id);
+    if (!fullUser) {
+      return user;
+    }
+    const result: ICurrentUser = {
+      id: fullUser.id,
+      email: fullUser.email,
+      name: user.name || undefined,
+      accessCount: fullUser.accessCount ?? 0,
+    };
+    return result;
   }
 
   @Post('recovery-password')
@@ -240,6 +257,35 @@ export class AuthController {
     } catch (error) {
       this.logger.error(
         `❌ Erro em reset-password: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      throw error;
+    }
+  }
+
+  @Post('increment-access')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Incrementar contador de acessos',
+    description: 'Incrementa o contador de acessos do usuário autenticado.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Contador incrementado com sucesso',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Não autenticado',
+  })
+  async incrementAccess(@CurrentUser() user: ICurrentUser): Promise<{ message: string }> {
+    try {
+      this.logger.debug(`POST /auth/increment-access chamado para usuário: ${user.id}`);
+      await this.userRepository.incrementAccessCount(user.id);
+      return { message: 'Access count incrementado com sucesso' };
+    } catch (error) {
+      this.logger.error(
+        `❌ Erro em increment-access: ${error instanceof Error ? error.message : String(error)}`,
       );
       throw error;
     }

@@ -1,50 +1,74 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../../presentation';
 import './sidebar.css';
 
-export function Sidebar() {
-  const [isOpen, setIsOpen] = useState(false);
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleNavigation = (path: string) => {
     navigate(path);
-    setIsOpen(false);
+    onClose?.();
   };
+
+  const displayAccessCount = user?.accessCount ?? 0;
 
   return (
     <>
-      <button className="hamburger-btn" onClick={() => setIsOpen(!isOpen)}>
-        ☰
-      </button>
-
       <div className={`sidebar ${isOpen ? 'open' : ''}`}>
-        <button className="close-btn" onClick={() => setIsOpen(false)}>
-          ✕
-        </button>
+        {/* Header do Sidebar */}
+        <div className="sidebar-header">
+          <img src="/logo-Teddy.svg" alt="Teddy" className="sidebar-logo" />
+          <button className="close-btn" onClick={onClose}>
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
 
+        {/* Navegação */}
         <nav className="sidebar-nav">
           <button
-            className="sidebar-link"
+            className={`sidebar-link ${location.pathname === '/' ? 'active' : ''}`}
             onClick={() => handleNavigation('/')}
           >
-            🏠 Home
+            <span className="material-symbols-outlined">home</span>
+            <span>Home</span>
           </button>
           <button
-            className="sidebar-link"
+            className={`sidebar-link ${location.pathname === '/customers' ? 'active' : ''}`}
             onClick={() => handleNavigation('/customers')}
           >
-            👥 Clientes
+            <span className="material-symbols-outlined">people</span>
+            <span>Clientes</span>
           </button>
           <button
-            className="sidebar-link"
+            className={`sidebar-link ${location.pathname === '/selected-customers' ? 'active' : ''}`}
             onClick={() => handleNavigation('/selected-customers')}
           >
-            ⭐ Clientes selecionados
+            <span className="material-symbols-outlined">star</span>
+            <span>Clientes selecionados</span>
           </button>
         </nav>
+
+        {/* Footer com Contador de Acessos */}
+        <div className="sidebar-footer">
+          <div className="access-counter">
+            <span className="material-symbols-outlined">visibility</span>
+            <span className="counter-text">
+              {displayAccessCount} {displayAccessCount === 1 ? 'acesso' : 'acessos'}
+            </span>
+          </div>
+        </div>
       </div>
 
-      {isOpen && <div className="sidebar-overlay" onClick={() => setIsOpen(false)} />}
+      {/* Backdrop/Overlay */}
+      {isOpen && <div className="sidebar-overlay" onClick={() => onClose?.()} />}
     </>
   );
 }

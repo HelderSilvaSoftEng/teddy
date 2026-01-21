@@ -13,7 +13,8 @@
     ],
     "rootDir": "src",
     "module": "esnext",
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "forceConsistentCasingInFileNames": true
   },
   "exclude": [
     "out-tsc",

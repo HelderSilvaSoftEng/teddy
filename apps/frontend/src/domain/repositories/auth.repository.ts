@@ -6,4 +6,5 @@ export interface IAuthRepository {
   resetPassword(request: IResetPasswordRequest): Promise<IResetPasswordResponse>;
   getCurrentUser(): Promise<ICurrentUser>;
   logout(): Promise<void>;
+  incrementAccessCount(): Promise<void>;
 }

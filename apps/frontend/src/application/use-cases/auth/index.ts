@@ -3,3 +3,5 @@ export * from './recovery-password.usecase';
 export * from './reset-password.usecase';
 export * from './get-current-user.usecase';
 export * from './logout.usecase';
+export * from './increment-access-count.usecase';
+

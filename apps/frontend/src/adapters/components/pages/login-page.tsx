@@ -38,7 +38,14 @@ export function LoginPage() {
     try {
       const useCase = new LoginUseCase(authRepository);
       const result = await useCase.execute({ email, password });
-      setUser(result.user);
+      // Criar objeto ICurrentUser com todos os dados incluindo accessCount
+      const userData = result.user || {
+        id: '',
+        email: result.email || email,
+        name: result.user,
+        accessCount: result.accessCount || 0,
+      };
+      setUser(userData);
       navigate('/');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erro ao fazer login';

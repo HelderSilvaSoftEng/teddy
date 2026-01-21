@@ -1,4 +1,5 @@
 import { IPaginatedResponse, IPaginationParams } from '../../domain/types/index';
+import { ICustomerRepository, Customer } from '../../domain';
 import { httpClient, API_CONFIG } from '../http/http-client';
 
 export class CustomerRepository implements ICustomerRepository {
