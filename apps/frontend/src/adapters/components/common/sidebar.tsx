@@ -40,6 +40,13 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             <span>Home</span>
           </button>
           <button
+            className={`sidebar-link ${location.pathname === '/dashboard' ? 'active' : ''}`}
+            onClick={() => handleNavigation('/dashboard')}
+          >
+            <span className="material-symbols-outlined">dashboard</span>
+            <span>Dashboard</span>
+          </button>
+          <button
             className={`sidebar-link ${location.pathname === '/customers' ? 'active' : ''}`}
             onClick={() => handleNavigation('/customers')}
           >

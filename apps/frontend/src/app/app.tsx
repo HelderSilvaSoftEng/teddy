@@ -8,6 +8,7 @@ import {
   CustomersPage,
   SelectedCustomersPage,
 } from '../adapters/components/pages';
+import { DashboardPage } from '../presentation/pages/dashboard-page';
 import '../styles.css';
 
 export function App() {
@@ -33,6 +34,7 @@ export function App() {
         <>
           <Route path="/" element={<CustomersPage />} />
           <Route path="/customers" element={<CustomersPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/selected-customers" element={<SelectedCustomersPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </>

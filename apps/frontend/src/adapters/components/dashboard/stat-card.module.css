@@ -1,0 +1,57 @@
+.card {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.card.blue {
+  border-left-color: #3b82f6;
+}
+
+.card.green {
+  border-left-color: #10b981;
+}
+
+.card.purple {
+  border-left-color: #8b5cf6;
+}
+
+.card.orange {
+  border-left-color: #f59e0b;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.icon {
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.value {
+  margin: 0;
+  font-size: 32px;
+  font-weight: bold;
+  color: #1f2937;
+}

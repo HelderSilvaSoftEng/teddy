@@ -7,6 +7,7 @@ import { AuthenticationModule } from './modules/authentication/authentication.mo
 import { AuditModule } from '../common/modules/audit/audit.module';
 import { HealthModule } from '../common/modules/health';
 import { MetricsModule, MetricsMiddleware } from '../common/modules/metrics';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { MetricsModule, MetricsMiddleware } from '../common/modules/metrics';
     AuditModule,
     HealthModule,
     MetricsModule,
+    DashboardModule,
   ],
   controllers: [],
   providers: [],
