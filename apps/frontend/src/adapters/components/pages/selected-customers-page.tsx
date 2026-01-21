@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Customer } from '../../../domain';
-import { ListCustomersUseCase, CreateCustomerUseCase, UpdateCustomerUseCase, DeleteCustomerUseCase } from '../../../application';
+import { ListCustomersUseCase, UpdateCustomerUseCase, DeleteCustomerUseCase } from '../../../application';
 import { customerRepository } from '../../../infra';
 import { Header, Sidebar } from '../common';
 import { CustomerCard } from '../customer-card';

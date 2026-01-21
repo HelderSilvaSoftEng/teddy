@@ -3,6 +3,7 @@ import type { IUserRepositoryPort } from '../../domain/ports/user.repository.por
 import { USER_REPOSITORY_TOKEN } from '../../domain/ports/user.repository.port';
 import { User } from '../../domain/entities/user.entity';
 import { UpdateUserDto } from '../../adapters/dtos/update-user.dto';
+import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
 
 /**
  * UpdateUserUseCase - Lógica para atualizar um usuário existente
@@ -14,6 +15,7 @@ export class UpdateUserUseCase {
   constructor(
     @Inject(USER_REPOSITORY_TOKEN)
     private readonly UserRepository: IUserRepositoryPort,
+    private readonly logAuditUseCase: LogAuditUseCase,
   ) {}
 
   async execute(id: string, updateUserDto: UpdateUserDto): Promise<User> {
@@ -34,6 +36,26 @@ export class UpdateUserUseCase {
       const updated = await this.UserRepository.update(id, user);
 
       this.logger.log(`✅ Usuário atualizado com sucesso: ${id}`);
+
+      try {
+        await this.logAuditUseCase.execute({
+          userId: id,
+          userEmail: updated.email,
+          action: 'UPDATE',
+          entityType: 'User',
+          entityId: id,
+          oldValues: user,
+          newValues: updated,
+          ipAddress: '',
+          userAgent: '',
+          endpoint: '/api/v1/users/:id',
+          httpMethod: 'PUT',
+          status: '200',
+          errorMessage: null,
+        });
+      } catch {
+        // Silently fail to not break main operation
+      }
 
       return updated;
     } catch (error: unknown) {

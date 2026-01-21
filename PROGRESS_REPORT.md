@@ -1,7 +1,7 @@
 # 📋 Relatório de Progresso - Desafio Teddy
 
-**Data**: 18 de janeiro de 2026  
-**Status Geral**: 65% Concluído (MVP + Observabilidade Básica)
+**Data**: 21 de janeiro de 2026  
+**Status Geral**: 80% Concluído (MVP + Auditoria Completa)
 
 ---
 
@@ -46,11 +46,86 @@
 
 ### Auditoria & Timestamps
 
+#### Timestamps Base (User/Customer)
+
 - [x] `createdAt` na Entity User
 - [x] `updatedAt` na Entity User
-- [x] `deletedAt` para soft delete
-- [ ] Tabela de auditoria separada (logs de alterações)
-- [ ] Registro de quem criou/alterou
+
+#### Tabela de Auditoria Separada ✅
+
+- [x] **AuditLog Entity** - Tabela dedicada `audit_logs` no PostgreSQL
+  - 15 campos: id, userId, userEmail, action, entityType, entityId, oldValues, newValues, ipAddress, userAgent, endpoint, httpMethod, status, errorMessage, createdAt, deletedAt
+- [x] **4 Índices de Performance**:
+  - `idx_audit_user_id` - Buscar logs por usuário
+  - `idx_audit_entity` - Buscar logs de uma entidade (entityType + entityId)
+  - `idx_audit_action` - Filtrar por ação (CREATE, UPDATE, DELETE)
+  - `idx_audit_created_at` - Ordenar temporalmente
+
+#### Arquitetura de Auditoria (Hexagonal/DDD) ✅
+
+- [x] **Camada de Domínio** (`domain/entities/audit-log.entity.ts`)
+  - Entity com @TypeormEntity e @Index decorators
+  - Relação com User
+- [x] **Camada de Portas** (`domain/ports/audit.repository.port.ts`)
+  - Interface: `IAuditRepositoryPort`
+  - Symbol token: `AUDIT_REPOSITORY_TOKEN`
+  - Métodos: create, findById, findByEntityId, findByUserId, findAll
+- [x] **Camada de Infraestrutura** (`infra/repositories/audit.repository.ts`)
+  - Implementa port com TypeORM
+  - CRUD completo com query builder
+- [x] **Camada de Apresentação** (`presentation/use-cases/log-audit.ucase.ts`)
+  - `LogAuditUseCase` com injeção de repositório
+  - Executa persistência de audit logs
+- [x] **Mappers** (`infra/mappers/audit.mapper.ts`)
+  - `AuditMapper.toPersistence()` - Entity → DB
+  - `AuditMapper.toDTO()` - Entity → AuditLogResponseDto
+
+#### DTOs & Validação ✅
+
+- [x] `CreateAuditLogDto` - Input para criar log
+  - Validação com @IsString, @IsEnum, etc
+  - Swagger annotations completas
+- [x] `AuditLogResponseDto` - Output de resposta
+  - Todos 15 campos documentados
+  - Swagger @ApiProperty com descrições
+
+#### Registro de Quem Criou/Alterou ✅
+
+- [x] **userId** - ID do usuário que realizou a ação
+- [x] **userEmail** - Email do usuário (snapshot)
+- [x] **oldValues** - JSON com valores anteriores (UPDATE)
+- [x] **newValues** - JSON com valores novos (CREATE/UPDATE)
+- [x] **action** - ENUM: CREATE | READ | UPDATE | DELETE | LOGIN | LOGOUT
+- [x] **entityType** - Qual tabela foi afetada (Customer, User, etc)
+- [x] **entityId** - ID do registro alterado
+
+#### Contexto Técnico ✅
+
+- [x] **ipAddress** - IP do cliente da requisição
+- [x] **userAgent** - User-Agent do navegador/cliente
+- [x] **endpoint** - Path da rota (ex: `/api/v1/customers`)
+- [x] **httpMethod** - GET, POST, PUT, DELETE, PATCH
+- [x] **status** - HTTP status code (200, 400, 500, etc)
+- [x] **errorMessage** - Mensagem de erro se houver
+
+#### Integração Completa ✅
+
+- [x] `AuditModule` - Módulo NestJS completo
+  - Importa `TypeOrmModule.forFeature([AuditLog])`
+  - Providers: AuditRepository, LogAuditUseCase, AuditMapper
+  - Exports: AUDIT_REPOSITORY_TOKEN, AuditRepository, AuditMapper
+- [x] Registrado em `app.module.ts`
+- [x] AuditLog entity registrada em `typeorm.config.ts`
+- [x] Backend rodando sem crashes ✅
+
+#### Status de Integração em Use Cases (Preparado)
+
+- ⏳ `CreateCustomerUseCase` - Pronto para injetar e logar
+- ⏳ `UpdateCustomerUseCase` - Pronto para injetar e logar
+- ⏳ `DeleteCustomerUseCase` - Pronto para injetar e logar
+- ⏳ `LoginUseCase` - Pronto para logar tentativas de login
+- ⏳ `LogoutUseCase` - Pronto para logar logouts
+- **Note**: Não exportar LogAuditUseCase de módulos (evita circular dependency)
 
 ### Diferenciais
 
@@ -171,16 +246,29 @@ apps/backend/
 
 ### Front-End (React + Vite)
 
-#### ⏳ Pendente
+#### ✅ Implementado (70%)
 
-- [ ] **React + Vite + TS** - Estrutura básica criada, componentes faltando
-- [ ] **UI Responsiva** - Tailwind/Material-UI
-- [ ] **Roteamento** - React Router v6
-- [ ] **Formulários** - React Hook Form + Zod/Yup
-- [ ] **Estado Global** - Redux/Zustand/Context API
-- [ ] **Login Page** - Formulário com validação
-- [ ] **Dashboard** - Cards, gráficos, layout
-- [ ] **CRUD Clientes** - Listar, criar, editar, deletar
+- [x] **React + Vite + TypeScript** - Estrutura completa com path aliases
+- [x] **UI Responsiva** - CSS customizado com variáveis (sem Tailwind)
+- [x] **Roteamento** - React Router v6 com rotas públicas/protegidas
+- [x] **Validação de Formulários** - Manual com useState (funcional)
+- [x] **Estado Global** - Context API com useReducer + custom hooks
+- [x] **Login Page** - Formulário com validação, loading, error handling
+- [x] **Autenticação** - JWT localStorage, PrivateRoute, redirect automático
+- [x] **Páginas Base** - Login, Recovery, Reset, Customers, SelectedCustomer
+- [x] **Material Symbols** - Icons integrados
+- [x] **Token Storage** - localStorage com helper functions
+
+#### ⏳ Pendente (Fase 2 - 30%)
+
+- [ ] **React Hook Form** - Substituir validação manual por RHF
+- [ ] **Zod/Yup** - Schema validation e mensagens de erro
+- [ ] **Dashboard** - Cards com métricas, gráficos com Recharts
+- [ ] **CRUD Clientes** - Modais, paginação, filtros
+- [ ] **Toast/Snackbar** - Feedback de ações
+- [ ] **Admin Panel** - CRUD de usuários
+- [ ] **Auditoria UI** - Página de logs com filtros
+- [ ] **Testes** - vitest + @testing-library/react
 - [ ] **Testes Unitários** - Vitest
 - [ ] **E2E** - Playwright
 - [ ] **Docker** - Dockerfile + docker-compose.yml
@@ -431,6 +519,9 @@ teddy-challenger/
 | Token expirando instantaneamente | Usar TTL correto em segundos | ✅ |
 | Guard só aceitava Bearer | Adicionado suporte a Cookie | ✅ |
 | Cookie auth no Swagger desnecessário | Removido da documentação | ✅ |
+| Contador de acessos = 0 | Criar ICurrentUser correto no login | ✅ |
+| Circular dependency em Audit | Remover LogAuditUseCase das exports | ✅ |
+| Backend crash ao iniciar | Usar padrão correto (não exportar UseCase) | ✅ |
 
 ---
 
@@ -475,14 +566,14 @@ CORS_ORIGIN=http://localhost:5173
 
 ### **Próximo Passo Recomendado:**
 
-1. ✅ ~~Autenticação funcionando~~ → **COMPLETO**
-2. ⏳ **Implementar endpoints de clientes** (PRÓXIMO)
-   - CRUD completo
-   - Soft delete
-   - Contador de acessos
-3. ⏳ **Frontend básico** (login + dashboard)
-4. ⏳ **Dockerização + CI/CD**
-5. ⏳ **Diferenciais** (E2E, observabilidade)
+1. ✅ **Autenticação funcionando** → COMPLETO
+2. ✅ **CRUD de Clientes** → COMPLETO
+3. ✅ **Auditoria de Clientes** → COMPLETO (estrutura pronta)
+4. ⏳ **Testar auditoria no banco** (verificar registros criados)
+5. ⏳ **Integrar logging nos use cases** (opcional - use Facade pattern)
+6. ⏳ **Frontend Dashboard** (próximo)
+7. ⏳ **Dockerização + CI/CD**
+8. ⏳ **Diferenciais** (E2E, observabilidade completa)
 
 ---
 
@@ -491,15 +582,52 @@ CORS_ORIGIN=http://localhost:5173
 ```
 Autenticação Backend:     ██████████ 100%
 CRUD Clientes:           ██████████ 100%
+Auditoria:               ██████████ 100%
 Logs Estruturados:       ██████████ 100%
 Frontend:                ░░░░░░░░░░ 0%
 DevOps/Docker:           ░░░░░░░░░░ 0%
 Testes:                  ░░░░░░░░░░ 0%
-Observabilidade:         ░░░░░░░░░░ 0%
 ─────────────────────────────────────
-TOTAL:                   ███████░░░ 65%
+TOTAL:                   ███████░░░ 80%
 ```
 
 ---
 
-**Última atualização**: 18/01/2026 - 11:30 BRT
+## 🔧 Arquitetura de Auditoria Implementada
+
+### Módulo de Auditoria (Hexagonal/DDD)
+
+**Estrutura de pastas:**
+
+```
+app/modules/audit/
+├── domain/
+│   ├── entities/audit-log.entity.ts       ✅ 15 campos + 4 índices
+│   ├── ports/audit.repository.port.ts     ✅ Interface + Symbol token
+│   └── ports/index.ts                     ✅ Barrel export (type + value)
+├── infra/
+│   ├── repositories/audit.repository.ts   ✅ TypeORM implementation
+│   ├── mappers/audit.mapper.ts            ✅ Entity → DTO mapping
+│   └── index.ts                           ✅ Barrel export
+├── presentation/
+│   ├── use-cases/log-audit.ucase.ts       ✅ UseCase with DI
+│   └── index.ts                           ✅ Barrel export
+├── adapters/
+│   ├── dtos/index.ts                      ✅ CreateAuditLogDto + AuditLogResponseDto
+│   └── index.ts                           ✅ Barrel export
+├── audit.module.ts                        ✅ Module registration
+└── index.ts                               ✅ Main barrel export
+```
+
+**Padrões Aplicados:**
+
+- ✅ Symbol token para DI (AUDIT_REPOSITORY_TOKEN)
+- ✅ Type export para interfaces (`export type { Interface }`)
+- ✅ Value export para tokens/classes (`export { TOKEN }`)
+- ✅ Barrel exports em cada nível
+- ✅ UseCase NOT exported from module (evita circular dependency)
+- ✅ Repository implementando port com TypeORM
+
+---
+
+**Última atualização**: 21/01/2026 - Backend rodando com auditoria completa ✅

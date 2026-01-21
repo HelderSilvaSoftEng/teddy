@@ -1,12 +1,13 @@
 import { Injectable, Logger, UnauthorizedException, Inject, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import type { Response } from 'express';
+import type { Response, Request } from 'express';
 import { randomUUID } from 'crypto';
 import type { RefreshTokenPayload, RefreshResponse } from '../../domain/types';
 import type { IUserRepositoryPort } from '../../../users/domain/ports/user.repository.port';
 import { USER_REPOSITORY_TOKEN } from '../../../users/domain/ports/user.repository.port';
 import { User } from "../../../users/domain/entities/user.entity";
+import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
 
 @Injectable()
 export class RefreshTokenUseCase {
@@ -17,9 +18,10 @@ export class RefreshTokenUseCase {
     private readonly configService: ConfigService,
     @Inject(USER_REPOSITORY_TOKEN)
     private readonly userRepository: IUserRepositoryPort,
+    private readonly logAuditUseCase: LogAuditUseCase,
   ) {}
 
-  async execute(refreshToken: string, response: Response): Promise<RefreshResponse> {
+  async execute(refreshToken: string, response: Response, request?: Request): Promise<RefreshResponse> {
     try {
       // 1️⃣ Validar e decodificar refresh token
       if (!refreshToken) {
@@ -46,7 +48,7 @@ export class RefreshTokenUseCase {
 
       // 3️⃣ Buscar cliente no BD
       const user = await this.userRepository.findById(decoded.sub);
-      if (!client) {
+      if (!user) {
         throw new UnauthorizedException('Cliente não encontrado');
       }
 
@@ -55,7 +57,7 @@ export class RefreshTokenUseCase {
         throw new UnauthorizedException('Refresh token não configurado');
       }
 
-      const currentJtiHash = user.hashPassword(decoded.jti);
+      const currentJtiHash = User.hashPassword(decoded.jti);
       if (currentJtiHash !== user.refreshTokenHash) {
         this.logger.warn(`❌ JTI hash não corresponde para cliente: ${user.id}`);
         throw new UnauthorizedException('Refresh token revogado');
@@ -74,7 +76,7 @@ export class RefreshTokenUseCase {
         {
           sub: user.id,
           email: user.email,
-          name: user.userName || user.email,
+          name: user.email,
         },
         {
           expiresIn: accessTokenTtl,
@@ -100,7 +102,7 @@ export class RefreshTokenUseCase {
       });
 
       // 8️⃣ Hash do novo JTI
-      const newJtiHash = user.hashPassword(newJti);
+      const newJtiHash = User.hashPassword(newJti);
 
       // 9️⃣ Salvar novo hash no BD
       user.refreshTokenHash = newJtiHash;
@@ -133,6 +135,29 @@ export class RefreshTokenUseCase {
       });
 
       this.logger.log(`✅ Tokens rotacionados com sucesso`);
+
+      // 1️⃣1️⃣ Registrar auditoria de refresh token
+      try {
+        await this.logAuditUseCase.execute({
+          userId: user.id,
+          userEmail: user.email,
+          action: 'REFRESH_TOKEN',
+          entityType: 'User',
+          entityId: user.id,
+          oldValues: null,
+          newValues: null,
+          ipAddress: request?.ip || 'unknown',
+          userAgent: request?.get('user-agent') || 'unknown',
+          endpoint: '/api/auth/refresh',
+          httpMethod: 'POST',
+          status: '200',
+          errorMessage: null,
+        });
+        this.logger.log(`✅ Auditoria de refresh token registrada: ${user.email}`);
+      } catch (auditError: unknown) {
+        const auditErrorMsg = auditError instanceof Error ? auditError.message : String(auditError);
+        this.logger.warn(`⚠️ Falha ao registrar auditoria de refresh: ${auditErrorMsg}`);
+      }
 
       return {
         accessToken: newAccessToken,

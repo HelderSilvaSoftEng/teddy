@@ -21,9 +21,10 @@ import {
   DELETE_USER_PORT,
   CHANGE_PASSWORD_PORT,
 } from './presentation/ports';
+import { AuditModule } from '../../../common/modules/audit';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User])],
+  imports: [TypeOrmModule.forFeature([User]), AuditModule],
   controllers: [UserController],
   providers: [
     UserMapper,

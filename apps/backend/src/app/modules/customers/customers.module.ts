@@ -13,9 +13,10 @@ import {
   DeleteCustomerUseCase,
 } from './presentation/use-cases';
 import { CUSTOMER_REPOSITORY_TOKEN } from './domain/ports';
+import { AuditModule } from '../../../common/modules/audit';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Customer])],
+  imports: [TypeOrmModule.forFeature([Customer]), AuditModule],
   controllers: [CustomerController],
   providers: [
     CustomerMapper,

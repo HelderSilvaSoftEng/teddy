@@ -4,6 +4,7 @@ import { DatabaseModule } from '../common/database';
 import { UsersModule } from './modules/users/users.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { AuthenticationModule } from './modules/authentication/authentication.module';
+import { AuditModule } from '../common/modules/audit/audit.module';
 import { HealthModule } from '../common/modules/health';
 import { MetricsModule, MetricsMiddleware } from '../common/modules/metrics';
 
@@ -17,6 +18,7 @@ import { MetricsModule, MetricsMiddleware } from '../common/modules/metrics';
     UsersModule,
     CustomersModule,
     AuthenticationModule,
+    AuditModule,
     HealthModule,
     MetricsModule,
   ],
