@@ -6,16 +6,19 @@ import { AppModule } from './app/app.module';
 import { LoggerService } from './common/services/logger';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    logger: false, // ✅ Desabilitar logger padrão do NestJS
-  });
+  try {
+    console.log('🔍 [MAIN] Iniciando NestFactory.create...');
+    const app = await NestFactory.create(AppModule, {
+      logger: false, // ✅ Desabilitar logger padrão do NestJS
+    });
+    console.log('✅ [MAIN] NestFactory.create completo');
 
   // ✅ Usar LoggerService como logger global
   const loggerService = new LoggerService('NestJS');
   app.useLogger(loggerService);
   
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
+    origin: process.env.FRONTEND_URL || 'http://localhost:4200',
     credentials: true,  // ✅ Permite cookies cross-origin
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -62,11 +65,17 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3000;
   
+  console.log('🔍 [MAIN] Iniciando app.listen...');
   await app.listen(port);
+  console.log('✅ [MAIN] app.listen completo');
   
   // Log de inicialização com sucesso usando o LoggerService
   loggerService.log(`🚀 Application is running on: http://localhost:${port}/${globalPrefix}`, 'Bootstrap');
   loggerService.log(`📚 Swagger documentation: http://localhost:${port}/docs`, 'Bootstrap');
+  } catch (error) {
+    console.error('❌ [MAIN] Erro durante bootstrap:', error);
+    throw error;
+  }
 }
 
 bootstrap().catch((error) => {

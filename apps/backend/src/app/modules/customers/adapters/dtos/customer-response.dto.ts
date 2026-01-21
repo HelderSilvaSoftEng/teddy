@@ -23,20 +23,6 @@ export class CustomerResponseDto {
   name: string | null = null;
 
   @ApiProperty({
-    example: '123.456.789-00',
-    description: 'CPF do cliente',
-    nullable: true,
-  })
-  personalId: string | null = null;
-
-  @ApiProperty({
-    example: '+55 11 98765-4321',
-    description: 'Telefone/Celular do cliente',
-    nullable: true,
-  })
-  mobile: string | null = null;
-
-  @ApiProperty({
     example: 5000.50,
     description: 'Salário mensal do cliente',
     type: Number,

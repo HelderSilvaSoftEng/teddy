@@ -1,0 +1,161 @@
+.customers-layout {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  background-color: #f5f5f5;
+}
+
+.customers-content {
+  flex: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 2rem;
+}
+
+.customers-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.customers-header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  color: #333;
+}
+
+.customer-count {
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.error-banner {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  border: 1px solid #f5c6cb;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.customers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.no-customers {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2rem;
+  color: #999;
+  font-size: 1.1rem;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.pagination button {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ddd;
+  background-color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 0.9rem;
+}
+
+.pagination button:hover:not(:disabled) {
+  border-color: #ff6633;
+  color: #ff6633;
+}
+
+.pagination button.active {
+  background-color: #ff6633;
+  color: white;
+  border-color: #ff6633;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-dots {
+  padding: 0.5rem 0.25rem;
+  color: #999;
+}
+
+.create-customer-btn {
+  width: 100%;
+  padding: 1rem;
+  background-color: #ff6633;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.create-customer-btn:hover {
+  background-color: #ff5500;
+}
+
+.clear-all-btn {
+  width: 100%;
+  padding: 1rem;
+  background-color: transparent;
+  color: #ff6633;
+  border: 2px solid #ff6633;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 1.5rem;
+}
+
+.clear-all-btn:hover:not(:disabled) {
+  background-color: #ff6633;
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 102, 51, 0.3);
+}
+
+.clear-all-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .customers-content {
+    padding: 1rem;
+  }
+
+  .customers-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+
+  .customers-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}

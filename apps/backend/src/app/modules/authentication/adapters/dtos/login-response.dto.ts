@@ -15,4 +15,7 @@ export class LoginResponseDto {
     description: 'Refresh token - também é enviado em cookie httpOnly'
   })
   refreshToken!: string;
+
+  @ApiProperty({ example: 12, description: 'Quantidade de acessos do usuário' })
+  accessCount!: number;
 }

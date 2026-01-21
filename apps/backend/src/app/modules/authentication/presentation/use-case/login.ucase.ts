@@ -1,12 +1,13 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import type { Response } from 'express';
+import type { Response, Request } from 'express';
 import { randomUUID } from 'crypto';
 import type { ICurrentUser, TokenPayloadUser, LoginResponse } from '../../domain/types';
 import type { IUserRepositoryPort } from '../../../users/domain/ports/user.repository.port';
 import { USER_REPOSITORY_TOKEN } from '../../../users/domain/ports/user.repository.port';
 import { User } from "../../../users/domain/entities/user.entity";
+import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
 
 @Injectable()
 export class LoginUseCase {
@@ -17,9 +18,10 @@ export class LoginUseCase {
     private readonly configService: ConfigService,
     @Inject(USER_REPOSITORY_TOKEN)
     private readonly userRepository: IUserRepositoryPort,
+    private readonly logAuditUseCase: LogAuditUseCase,
   ) {}
 
-  async execute(user: ICurrentUser, response: Response): Promise<LoginResponse> {
+  async execute(user: ICurrentUser, response: Response, request?: Request): Promise<LoginResponse> {
     try {
       this.logger.log(`🔐 Iniciando login para: ${user.email}`);
 
@@ -108,12 +110,37 @@ export class LoginUseCase {
 
       this.logger.log(`✅ Cookies httpOnly setados: ${currentUser.email}`);
 
-      // 🔟 Retornar response com access token + refresh token
+      // 🔟 Registrar auditoria de login
+      try {
+        await this.logAuditUseCase.execute({
+          userId: currentUser.id,
+          userEmail: currentUser.email,
+          action: 'LOGIN',
+          entityType: 'User',
+          entityId: currentUser.id,
+          oldValues: null,
+          newValues: { email: currentUser.email, accessCount: currentUser.accessCount },
+          ipAddress: request?.ip || 'unknown',
+          userAgent: request?.get('user-agent') || 'unknown',
+          endpoint: '/api/auth/login',
+          httpMethod: 'POST',
+          status: '200',
+          errorMessage: null,
+        });
+        this.logger.log(`✅ Auditoria de login registrada: ${currentUser.email}`);
+      } catch (auditError: unknown) {
+        const auditErrorMsg = auditError instanceof Error ? auditError.message : String(auditError);
+        this.logger.warn(`⚠️ Falha ao registrar auditoria de login: ${auditErrorMsg}`);
+        // Continuar mesmo se auditoria falhar (não quebra o login)
+      }
+
+      // 1️⃣ Retornar response com access token + refresh token + accessCount
       return {
         user: currentUser.email,
         email: currentUser.email,
         accessToken: accessToken,
         refreshToken: refreshToken,
+        accessCount: currentUser.accessCount ?? 0,
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);

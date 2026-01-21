@@ -1,18 +1,10 @@
 import { Injectable, Logger, Inject, NotFoundException } from '@nestjs/common';
-import type { Response } from 'express';
+import type { Response, Request } from 'express';
 import type { ICurrentUser, LogoutResponse } from '../../domain/types';
 import type { IUserRepositoryPort } from '../../../users/domain/ports/user.repository.port';
 import { USER_REPOSITORY_TOKEN } from '../../../users/domain/ports/user.repository.port';
+import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
 
-/**
- * LogoutUseCase - Invalida refresh token
- * 
- * Fluxo:
- * 1. Buscar cliente
- * 2. Zerar refreshTokenHash
- * 3. Zerar refreshTokenExpires
- * 4. Salvar no BD
- */
 @Injectable()
 export class LogoutUseCase {
   private readonly logger = new Logger(LogoutUseCase.name);
@@ -20,31 +12,55 @@ export class LogoutUseCase {
   constructor(
     @Inject(USER_REPOSITORY_TOKEN)
     private readonly userRepository: IUserRepositoryPort,
+    private readonly logAuditUseCase: LogAuditUseCase,
   ) {}
 
-  async execute(user: ICurrentUser, response: Response): Promise<LogoutResponse> {
+  async execute(user: ICurrentUser, response: Response, request?: Request): Promise<LogoutResponse> {
     try {
       this.logger.log(`👋 Iniciando logout para: ${user.email}`);
 
       // 1️⃣ Buscar cliente
-      const user = await this.userRepository.findById(user.id);
-      if (!client) {
+      const currentUser = await this.userRepository.findById(user.id);
+      if (!currentUser) {
         throw new NotFoundException('Cliente não encontrado');
       }
 
       // 2️⃣ Zerar refresh token no cliente
-      user.refreshTokenHash = undefined;
-      user.refreshTokenExpires = undefined;
-      user.updatedAt = new Date();
+      currentUser.refreshTokenHash = undefined;
+      currentUser.refreshTokenExpires = undefined;
+      currentUser.updatedAt = new Date();
 
       // 3️⃣ Salvar no BD
-      await this.userRepository.update(user.id, client);
+      await this.userRepository.update(currentUser.id, currentUser);
 
       // 4️⃣ Limpar cookies
       response.clearCookie('Authentication', { path: '/' });
       response.clearCookie('RefreshToken', { path: '/' });
 
-      this.logger.log(`✅ Logout concluído: ${user.email}`);
+      // 5️⃣ Registrar auditoria
+      try {
+        await this.logAuditUseCase.execute({
+          userId: currentUser.id,
+          userEmail: currentUser.email,
+          action: 'LOGOUT',
+          entityType: 'User',
+          entityId: currentUser.id,
+          oldValues: null,
+          newValues: null,
+          ipAddress: request?.ip || 'unknown',
+          userAgent: request?.get('user-agent') || 'unknown',
+          endpoint: '/api/auth/logout',
+          httpMethod: 'POST',
+          status: '200',
+          errorMessage: null,
+        });
+        this.logger.log(`✅ Auditoria de logout registrada: ${currentUser.email}`);
+      } catch (auditError: unknown) {
+        const auditErrorMsg = auditError instanceof Error ? auditError.message : String(auditError);
+        this.logger.warn(`⚠️ Falha ao registrar auditoria de logout: ${auditErrorMsg}`);
+      }
+
+      this.logger.log(`✅ Logout concluído: ${currentUser.email}`);
 
       return {
         message: 'Logout realizado com sucesso',

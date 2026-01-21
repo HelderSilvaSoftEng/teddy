@@ -28,6 +28,7 @@ export interface ICurrentUser {
   id: string;
   email: string;
   name?: string;
+  accessCount?: number;
 }
 
 
@@ -36,6 +37,7 @@ export interface LoginResponse {
   email: string;
   accessToken: string;
   refreshToken: string;
+  accessCount?: number;
 }
 
 

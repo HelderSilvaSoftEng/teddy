@@ -18,6 +18,9 @@ import { UsersModule } from '../users/users.module';
 // Email module
 import { EmailModule } from '../../../common/services/email';
 
+// Audit module
+import { AuditModule } from '../../../common/modules/audit';
+
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
@@ -32,6 +35,7 @@ import { EmailModule } from '../../../common/services/email';
     }),
     UsersModule,
     EmailModule,
+    AuditModule,
   ],
   controllers: [AuthController],
   providers: [

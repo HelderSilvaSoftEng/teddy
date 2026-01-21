@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { typeormConfig } from './typeorm.config';
 import { runAdminUserSeed } from './seeds/create-admin-user.seed';
+import { runCustomersSeed } from './seeds/create-customers.seed';
 
 @Module({
   imports: [TypeOrmModule.forRoot(typeormConfig)],
@@ -18,6 +19,7 @@ export class DatabaseModule implements OnModuleInit {
       
       if (this.dataSource.isInitialized) {
         await runAdminUserSeed(this.dataSource);
+        await runCustomersSeed(this.dataSource);
       }
     } catch (error) {
       console.error('❌ Error running seeds:', error);

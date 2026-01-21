@@ -3,6 +3,7 @@ import type { IUserRepositoryPort } from '../../domain/ports/user.repository.por
 import { USER_REPOSITORY_TOKEN } from '../../domain/ports/user.repository.port';
 import { User, UserStatusEnum } from '../../domain/entities/user.entity';
 import { CreateUserDto } from '../../adapters/dtos/create-user.dto';
+import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
 
 /**
  * CreateUserUseCase - Lógica para criar um novo usuário
@@ -20,6 +21,7 @@ export class CreateUserUseCase {
   constructor(
     @Inject(USER_REPOSITORY_TOKEN)
     private readonly UserRepository: IUserRepositoryPort,
+    private readonly logAuditUseCase: LogAuditUseCase,
   ) {}
 
   async execute(createUserDto: CreateUserDto): Promise<User> {
@@ -47,6 +49,26 @@ export class CreateUserUseCase {
       const createdUser = await this.UserRepository.create(user);
 
       this.logger.log(`✅ Usuário criado com sucesso: ${createdUser.id}`);
+
+      try {
+        await this.logAuditUseCase.execute({
+          userId: createdUser.id,
+          userEmail: createdUser.email,
+          action: 'CREATE',
+          entityType: 'User',
+          entityId: createdUser.id,
+          oldValues: null,
+          newValues: createdUser,
+          ipAddress: '',
+          userAgent: '',
+          endpoint: '/api/v1/users',
+          httpMethod: 'POST',
+          status: '201',
+          errorMessage: null,
+        });
+      } catch {
+        // Silently fail to not break main operation
+      }
 
       return createdUser;
     } catch (error: unknown) {

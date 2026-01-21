@@ -1,11 +1,13 @@
-import { Injectable, Logger, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import type { Request } from 'express';
 import { EmailService } from '../../../../../common/services/email/email.service';
 import type { IUserRepositoryPort } from '../../../users/domain/ports/user.repository.port';
 import { USER_REPOSITORY_TOKEN } from '../../../users/domain/ports/user.repository.port';
-import { User } from "../../../users/domain/entities/user.entity";
+import { User } from '../../../users/domain/entities/user.entity';
 import type { RecoveryTokenPayload } from '../../domain/types';
+import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
 
 @Injectable()
 export class RecoveryPasswordUseCase {
@@ -17,15 +19,16 @@ export class RecoveryPasswordUseCase {
     private readonly emailService: EmailService,
     @Inject(USER_REPOSITORY_TOKEN)
     private readonly userRepository: IUserRepositoryPort,
+    private readonly logAuditUseCase: LogAuditUseCase,
   ) {}
 
-  async execute(email: string): Promise<{ message: string }> {
+  async execute(email: string, request?: Request): Promise<{ message: string }> {
     try {
       this.logger.log(`🔐 Iniciando recuperação de senha para: ${email}`);
 
       // 1️⃣ Buscar cliente por email
       const user = await this.userRepository.findByEmail(email);
-      if (!client) {
+      if (!user) {
         // Por segurança, retornar mensagem genérica mesmo se email não existe
         this.logger.warn(`⚠️ Tentativa de recuperação para email inexistente: ${email}`);
         return { message: 'Se o email existe, você receberá instruções para recuperar sua senha.' };
@@ -49,7 +52,7 @@ export class RecoveryPasswordUseCase {
       this.logger.log(`✅ Token de recuperação gerado para: ${email}`);
 
       // 3️⃣ Hash do token para armazenar no BD (segurança)
-      const recoveryTokenHash = user.hashPassword(recoveryToken);
+      const recoveryTokenHash = User.hashPassword(recoveryToken);
       user.recoveryTokenHash = recoveryTokenHash;
       user.recoveryTokenExpires = new Date(Date.now() + recoveryTokenTtl * 1000);
 
@@ -60,15 +63,38 @@ export class RecoveryPasswordUseCase {
       await this.emailService.sendPasswordRecoveryEmail(
         user.email,
         recoveryToken,
-        user.userName || 'Usuário',
+        'Usuário',
       );
 
       this.logger.log(`✅ Email de recuperação enviado para: ${email}`);
 
+      // 5️⃣ Registrar auditoria de recuperação de senha
+      try {
+        await this.logAuditUseCase.execute({
+          userId: user.id,
+          userEmail: user.email,
+          action: 'RECOVERY_PASSWORD',
+          entityType: 'User',
+          entityId: user.id,
+          oldValues: null,
+          newValues: null,
+          ipAddress: request?.ip || 'unknown',
+          userAgent: request?.get('user-agent') || 'unknown',
+          endpoint: '/api/auth/recovery-password',
+          httpMethod: 'POST',
+          status: '200',
+          errorMessage: null,
+        });
+        this.logger.log(`✅ Auditoria de recuperação registrada: ${email}`);
+      } catch (auditError: unknown) {
+        const auditErrorMsg = auditError instanceof Error ? auditError.message : String(auditError);
+        this.logger.warn(`⚠️ Falha ao registrar auditoria de recuperação: ${auditErrorMsg}`);
+      }
+
       return {
         message: 'Se o email existe, você receberá instruções para recuperar sua senha.',
       };
-    } catch (error) {
+    } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`❌ Erro ao processar recuperação de senha: ${errorMessage}`);
       throw error;
