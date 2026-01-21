@@ -88,7 +88,7 @@ export class CustomerController {
   @Get()
   @ApiOperation({
     summary: 'Listar todos os clientes',
-    description: 'Retorna uma lista paginada de clientes',
+    description: 'Retorna uma lista paginada de clientes com filtros opcionais',
   })
   @ApiQuery({
     name: 'skip',
@@ -101,6 +101,19 @@ export class CustomerController {
     required: false,
     type: Number,
     description: 'Número de registros a retornar (default: 10)',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Valor a buscar (ex: "Active", "João", "Tech")',
+  })
+  @ApiQuery({
+    name: 'searchField',
+    required: false,
+    type: String,
+    enum: ['status', 'name', 'company'],
+    description: 'Campo onde buscar (default: "status")',
   })
   @ApiResponse({
     status: 200,
@@ -123,11 +136,13 @@ export class CustomerController {
   async findAll(
     @Query('skip') skip = 0,
     @Query('take') take = 10,
+    @Query('search') search?: string,
+    @Query('searchField') searchField = 'status',
   ): Promise<{ data: CustomerResponseDto[]; total: number }> {
     try {
-      this.logger.log(`📋 Listando clientes: skip=${skip}, take=${take}`);
+      this.logger.log(`📋 Listando clientes: skip=${skip}, take=${take}, search=${search}, searchField=${searchField}`);
 
-      const result = await this.findAllCustomersUseCase.execute(skip, take);
+      const result = await this.findAllCustomersUseCase.execute(skip, take, search, searchField);
       return {
         data: this.customerMapper.toResponseDtoList(result.data),
         total: result.total,

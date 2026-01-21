@@ -4,7 +4,7 @@ export interface ICustomerRepositoryPort {
   create(data: Partial<Customer>): Promise<Customer>;
   findById(id: string): Promise<Customer | null>;
   findByUserId(userId: string): Promise<Customer | null>;
-  findAll(skip?: number, take?: number): Promise<{ data: Customer[]; total: number }>;
+  findAll(skip?: number, take?: number, search?: string, searchField?: string): Promise<{ data: Customer[]; total: number }>;
   update(id: string, data: Partial<Customer>): Promise<Customer | null>;
   delete(id: string): Promise<void>;
 }

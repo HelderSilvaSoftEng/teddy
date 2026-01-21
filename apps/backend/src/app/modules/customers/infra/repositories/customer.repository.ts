@@ -28,13 +28,23 @@ export class CustomerRepository implements ICustomerRepositoryPort {
     });
   }
 
-  async findAll(skip = 0, take = 10): Promise<{ data: Customer[]; total: number }> {
-    const [data, total] = await this.repository
+  async findAll(skip = 0, take = 10, search?: string, searchField = 'status'): Promise<{ data: Customer[]; total: number }> {
+    let query = this.repository
       .createQueryBuilder('customer')
-      .where('customer.deletedAt IS NULL')
+      .where('customer.deletedAt IS NULL');
+
+    // Aplicar filtro de busca se fornecido
+    if (search) {
+      const validFields = ['status', 'name', 'company'];
+      const field = validFields.includes(searchField) ? searchField : 'status';
+      query = query.andWhere(`customer.${field} = :search`, { search });
+    }
+
+    const [data, total] = await query
       .skip(skip)
       .take(take)
       .getManyAndCount();
+    
     return { data, total };
   }
 

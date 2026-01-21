@@ -9,8 +9,6 @@ export class CustomerMapper {
       id: customer.id,
       userId: customer.userId,
       name: customer.name,
-      personalId: (customer as any).personalId,
-      mobile: (customer as any).mobile,
       salary: customer.salary,
       company: customer.company,
       status: customer.status,

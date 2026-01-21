@@ -19,8 +19,6 @@ export function UpdateCustomerModal({
 }: UpdateCustomerModalProps) {
   const [formData, setFormData] = useState({
     name: customer?.name || '',
-    personalId: customer?.personalId || '',
-    mobile: customer?.mobile || '',
     salary: customer?.salary?.toString() || '',
     company: customer?.company || '',
   });
@@ -48,8 +46,6 @@ export function UpdateCustomerModal({
       await onSubmit({
         ...customer,
         name: formData.name,
-        personalId: formData.personalId || undefined,
-        mobile: formData.mobile || undefined,
         salary: formData.salary ? parseFloat(formData.salary) : undefined,
         company: formData.company || undefined,
       });
@@ -62,8 +58,6 @@ export function UpdateCustomerModal({
   const handleClose = () => {
     setFormData({
       name: customer?.name || '',
-      personalId: customer?.personalId || '',
-      mobile: customer?.mobile || '',
       salary: customer?.salary?.toString() || '',
       company: customer?.company || '',
     });
@@ -78,7 +72,6 @@ export function UpdateCustomerModal({
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Editar Cliente</h2>
-          <button className="modal-close" onClick={handleClose}>×</button>
         </div>
 
         <form onSubmit={handleSubmit} className="modal-form">
@@ -93,32 +86,6 @@ export function UpdateCustomerModal({
               placeholder="Nome do cliente"
               disabled={isLoading}
               required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="personalId">CPF</label>
-            <input
-              id="personalId"
-              type="text"
-              name="personalId"
-              value={formData.personalId}
-              onChange={handleInputChange}
-              placeholder="CPF (opcional)"
-              disabled={isLoading}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="mobile">Telefone</label>
-            <input
-              id="mobile"
-              type="tel"
-              name="mobile"
-              value={formData.mobile}
-              onChange={handleInputChange}
-              placeholder="Telefone (opcional)"
-              disabled={isLoading}
             />
           </div>
 
@@ -154,7 +121,7 @@ export function UpdateCustomerModal({
           <div className="modal-actions">
             <button
               type="button"
-              className="btn-secondary"
+              className="btn-cancel"
               onClick={handleClose}
               disabled={isLoading}
             >
@@ -162,7 +129,7 @@ export function UpdateCustomerModal({
             </button>
             <button
               type="submit"
-              className="btn-primary"
+              className="btn-submit"
               disabled={isLoading}
             >
               {isLoading ? 'Atualizando...' : 'Atualizar Cliente'}

@@ -10,7 +10,7 @@ export class FindAllCustomersUseCase {
     private readonly customerRepository: ICustomerRepositoryPort,
   ) {}
 
-  async execute(skip?: number, take?: number): Promise<{ data: Customer[]; total: number }> {
-    return this.customerRepository.findAll(skip, take);
+  async execute(skip?: number, take?: number, search?: string, searchField = 'status'): Promise<{ data: Customer[]; total: number }> {
+    return this.customerRepository.findAll(skip, take, search, searchField);
   }
 }

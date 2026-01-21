@@ -28,7 +28,7 @@ export function CustomersPage() {
       setError(null);
       const skip = (page - 1) * ITEMS_PER_PAGE;
       const useCase = new ListCustomersUseCase(customerRepository);
-      const result = await useCase.execute({ skip, take: ITEMS_PER_PAGE });
+      const result = await useCase.execute({ skip, take: ITEMS_PER_PAGE, search: 'ACTIVE', searchField: 'status' });
       setCustomers(result.data.sort((a, b) => (a.name || '').localeCompare(b.name || '')));
       setTotal(result.total);
     } catch (err) {

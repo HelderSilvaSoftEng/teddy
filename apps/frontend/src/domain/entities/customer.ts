@@ -3,8 +3,6 @@ export class Customer {
   id!: string;
   userId!: string;
   name?: string;
-  personalId?: string;
-  mobile?: string;
   salary?: number;
   company?: string;
   status = 'ACTIVE';
@@ -21,8 +19,6 @@ export interface ICustomer {
   id: string;
   userId: string;
   name?: string;
-  personalId?: string;
-  mobile?: string;
   salary?: number;
   company?: string;
   status: string;

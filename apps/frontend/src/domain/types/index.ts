@@ -38,6 +38,8 @@ export interface IResetPasswordResponse {
 export interface IPaginationParams {
   skip?: number;
   take?: number;
+  search?: string;
+  searchField?: string;
 }
 
 export interface IPaginatedResponse<T> {

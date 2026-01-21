@@ -1,10 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../../presentation';
+import { GetCurrentUserUseCase } from '../../../application';
+import { authRepository } from '../../../infra';
 import './header.css';
 
 export function Header() {
-  const { user, logout } = useAuth();
+  const { user, setUser, logout } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
+
+  useEffect(() => {
+    const loadCurrentUser = async () => {
+      try {
+        if (!user) {
+          const useCase = new GetCurrentUserUseCase(authRepository);
+          const currentUser = await useCase.execute();
+          setUser(currentUser);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar usuário:', error);
+      }
+    };
+
+    loadCurrentUser();
+  }, [user, setUser]);
+
+  const getDisplayName = () => {
+    const nameOrEmail = user?.name || user?.email || '';
+    return nameOrEmail.split('@')[0];
+  };
 
   const handleLogout = async () => {
     try {
@@ -31,7 +54,7 @@ export function Header() {
         </nav>
 
         <div className="user-menu">
-          <span className="user-name">{user?.name || user?.email}</span>
+          <span className="user-name">Olá, {getDisplayName()}</span>
           <button className="logout-btn" onClick={handleLogout}>
             Sair
           </button>

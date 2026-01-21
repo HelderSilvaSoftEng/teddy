@@ -10,7 +10,6 @@ interface CreateCustomerModalProps {
 export function CreateCustomerModal({ onClose, onCreate }: CreateCustomerModalProps) {
   const [formData, setFormData] = useState({
     name: '',
-    personalId: '',
     salary: '',
     company: '',
   });
@@ -48,7 +47,6 @@ export function CreateCustomerModal({ onClose, onCreate }: CreateCustomerModalPr
     try {
       await onCreate({
         name: formData.name,
-        personalId: formData.personalId || undefined,
         salary: formData.salary ? parseFloat(formData.salary) : undefined,
         company: formData.company || undefined,
       });
@@ -73,16 +71,6 @@ export function CreateCustomerModal({ onClose, onCreate }: CreateCustomerModalPr
               className={errors.name ? 'input-error' : ''}
             />
             {errors.name && <span className="error-message">{errors.name}</span>}
-          </div>
-
-          <div className="form-group">
-            <input
-              type="text"
-              name="personalId"
-              placeholder="Digite o CPF (opcional):"
-              value={formData.personalId}
-              onChange={handleChange}
-            />
           </div>
 
           <div className="form-group">

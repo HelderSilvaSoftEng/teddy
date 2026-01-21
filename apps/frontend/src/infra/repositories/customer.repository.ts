@@ -23,6 +23,8 @@ export class CustomerRepository implements ICustomerRepository {
     const searchParams = new URLSearchParams();
     if (params.skip !== undefined) searchParams.set('skip', String(params.skip));
     if (params.take !== undefined) searchParams.set('take', String(params.take));
+    if (params.search !== undefined) searchParams.set('search', params.search);
+    if (params.searchField !== undefined) searchParams.set('searchField', params.searchField);
 
     const query = searchParams.toString();
     const endpoint = query
