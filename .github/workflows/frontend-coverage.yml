@@ -1,0 +1,68 @@
+name: Frontend Coverage Report
+
+on:
+  push:
+    branches: [ main, feat/dashboard ]
+    paths:
+      - 'apps/frontend/**'
+      - '.github/workflows/frontend-coverage.yml'
+  pull_request:
+    branches: [ main, feat/dashboard ]
+    paths:
+      - 'apps/frontend/**'
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate coverage report
+        run: npm run frontend:test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./apps/frontend/coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+          fail_ci_if_error: false
+
+      - name: Comment PR with coverage
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const coverage = JSON.parse(fs.readFileSync('./apps/frontend/coverage/coverage-final.json', 'utf8'));
+            const files = Object.keys(coverage).length;
+            
+            let totalStmts = 0, totalBranches = 0, totalFuncs = 0;
+            let coveredStmts = 0, coveredBranches = 0, coveredFuncs = 0;
+            
+            Object.values(coverage).forEach(file => {
+              Object.values(file.s || {}).forEach(hit => { totalStmts++; if(hit > 0) coveredStmts++; });
+              Object.values(file.b || {}).forEach(hit => { totalBranches += hit.length; coveredBranches += hit.filter(h => h > 0).length; });
+              Object.values(file.f || {}).forEach(hit => { totalFuncs++; if(hit > 0) coveredFuncs++; });
+            });
+            
+            const stmtsCov = ((coveredStmts / totalStmts) * 100).toFixed(2);
+            const branchCov = ((coveredBranches / totalBranches) * 100).toFixed(2);
+            const funcsCov = ((coveredFuncs / totalFuncs) * 100).toFixed(2);
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `📊 **Frontend Coverage Report**\n\n| Metric | Coverage |\n|--------|----------|\n| Statements | ${stmtsCov}% |\n| Branches | ${branchCov}% |\n| Functions | ${funcsCov}% |\n| Files | ${files} |`
+            });

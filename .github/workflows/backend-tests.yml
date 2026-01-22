@@ -1,0 +1,58 @@
+name: Backend Tests & Coverage
+
+on:
+  push:
+    branches: [ main, feat/dashboard ]
+    paths:
+      - 'apps/backend/**'
+      - '.github/workflows/backend-tests.yml'
+  pull_request:
+    branches: [ main, feat/dashboard ]
+    paths:
+      - 'apps/backend/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: teddy_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run backend tests
+        run: npm run backend:test
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/teddy_test
+          NODE_ENV: test
+
+      - name: Run backend E2E tests
+        run: npm run backend:e2e
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/teddy_test
+          NODE_ENV: test
+
+      - name: Build backend
+        run: npm run backend:build

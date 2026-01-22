@@ -85,6 +85,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadCurrentUser();
   }, []);
 
+  // Recarregar usuário quando isAuthenticated muda para true (após login)
+  useEffect(() => {
+    const reloadUserAfterLogin = async () => {
+      if (state.isAuthenticated && !state.user) {
+        try {
+          const user = await authRepository.getCurrentUser();
+          dispatch({ type: 'SET_USER', payload: user });
+        } catch (error) {
+          console.error('Erro ao recarregar usuário após login:', error);
+        }
+      }
+    };
+
+    reloadUserAfterLogin();
+  }, [state.isAuthenticated]);
+
   const setUser = (user: ICurrentUser) => {
     dispatch({ type: 'SET_USER', payload: user });
   };
