@@ -1,55 +1,51 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../../presentation';
 import { authRepository } from '../../../infra';
 import { LoginUseCase } from '../../../application';
 import './login-page.css';
 
+interface LoginFormInputs {
+  email: string;
+  password: string;
+}
+
 export function LoginPage() {
   const navigate = useNavigate();
   const { setUser, setError } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError: setFieldError,
+  } = useForm<LoginFormInputs>({
+    mode: 'onBlur',
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const validationErrors: typeof errors = {};
-
-    if (!email) {
-      validationErrors.email = 'Email é obrigatório';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      validationErrors.email = 'Email inválido';
-    }
-
-    if (!password) {
-      validationErrors.password = 'Senha é obrigatória';
-    }
-
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-
-    setIsLoading(true);
-    setErrors({});
-
+  const onSubmit = async (data: LoginFormInputs) => {
     try {
       // 1. Fazer login
       const useCase = new LoginUseCase(authRepository);
-      await useCase.execute({ email, password });
-      
+      await useCase.execute(data);
+
       // 2. Carregar dados do usuário após login
       const userData = await authRepository.getCurrentUser();
       setUser(userData);
-      
+
       navigate('/');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erro ao fazer login';
       setError(message);
-    } finally {
-      setIsLoading(false);
+      
+      // Se for erro de credenciais, destaca o email
+      if (message.includes('Email') || message.includes('senha')) {
+        setFieldError('email', { message });
+      }
     }
   };
 
@@ -58,37 +54,43 @@ export function LoginPage() {
       <div className="login-box">
         <h1>Olá, seja bem-vindo!</h1>
 
-        <form onSubmit={handleSubmit} className="login-form">
+        <form onSubmit={handleSubmit(onSubmit)} className="login-form">
           <div className="form-group">
             <input
               type="email"
               placeholder="Digite o seu email:"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setErrors({ ...errors, email: undefined });
-              }}
+              {...register('email', {
+                required: 'Email é obrigatório',
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: 'Email inválido',
+                },
+              })}
               className={errors.email ? 'input-error' : ''}
+              disabled={isSubmitting}
             />
-            {errors.email && <span className="error-message">{errors.email}</span>}
+            {errors.email && (
+              <span className="error-message">{errors.email.message}</span>
+            )}
           </div>
 
           <div className="form-group">
             <input
               type="password"
               placeholder="Digite a sua senha:"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setErrors({ ...errors, password: undefined });
-              }}
+              {...register('password', {
+                required: 'Senha é obrigatória',
+              })}
               className={errors.password ? 'input-error' : ''}
+              disabled={isSubmitting}
             />
-            {errors.password && <span className="error-message">{errors.password}</span>}
+            {errors.password && (
+              <span className="error-message">{errors.password.message}</span>
+            )}
           </div>
 
-          <button type="submit" className="login-btn" disabled={isLoading}>
-            {isLoading ? 'Entrando...' : 'Entrar'}
+          <button type="submit" className="login-btn" disabled={isSubmitting}>
+            {isSubmitting ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
 

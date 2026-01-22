@@ -4,33 +4,28 @@ import { User } from '../../../app/modules/users/domain/entities';
 
 export async function runCustomersSeed(dataSource: DataSource): Promise<void> {
   try {
-    console.log('🌱 [SEED] Customers seed starting...');
     const customerRepository = dataSource.getRepository(Customer);
     const userRepository = dataSource.getRepository(User);
 
-    // Buscar o usuário admin
+    // Find admin user
     const adminUser = await userRepository.findOne({
       where: { email: 'admin@teddy.com' },
     });
 
     if (!adminUser) {
-      console.log('⚠️  Admin user not found, skipping customers seed');
       return;
     }
 
-    console.log('🌱 [SEED] Admin user found:', adminUser.id);
-
-    // Verificar se já existem customers
+    // Check if customers already exist
     const existingCount = await customerRepository.count({
       where: { userId: adminUser.id },
     });
 
     if (existingCount > 0) {
-      console.log(`✓ Customers already exist (${existingCount} found)`);
       return;
     }
 
-    // Dados dos 30 customers
+    // Customer data
     const customersData = [
       { name: 'João Silva', salary: 5500.00, company: 'Tech Solutions' },
       { name: 'Maria Santos', salary: 6200.00, company: 'Digital Innovations' },
@@ -64,9 +59,7 @@ export async function runCustomersSeed(dataSource: DataSource): Promise<void> {
       { name: 'Estela Ribeiro', salary: 6500.00, company: 'Marketing Plus' },
     ];
 
-    console.log(`🌱 [SEED] Creating ${customersData.length} customers...`);
-
-    // Criar os customers
+    // Create customers
     const customers = customersData.map(data => 
       new Customer({
         ...data,
@@ -76,9 +69,8 @@ export async function runCustomersSeed(dataSource: DataSource): Promise<void> {
     );
 
     await customerRepository.save(customers);
-    console.log(`✓ ${customers.length} customers created successfully`);
   } catch (error) {
-    console.error('❌ [SEED] Error in customers seed:', error);
+    console.error('Error in customers seed:', error);
     throw error;
   }
 }
