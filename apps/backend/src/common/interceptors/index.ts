@@ -1,1 +1,2 @@
-// Export interceptors aqui quando criados
+export * from './metrics.interceptor';
+

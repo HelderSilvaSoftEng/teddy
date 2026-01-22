@@ -2,15 +2,12 @@ import { MigrationInterface, QueryRunner, Table, TableColumn, TableForeignKey } 
 
 export class SplitClientsIntoUsersAndCustomers1705600900000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // 1️⃣ Renomear tabela 'clients' para 'users'
     await queryRunner.renameTable('clients', 'users');
 
-    // 2️⃣ Remover colunas de dados que não pertencem a users
     await queryRunner.dropColumn('users', 'userName');
     await queryRunner.dropColumn('users', 'personalId');
     await queryRunner.dropColumn('users', 'mobile');
 
-    // 3️⃣ Criar tabela 'customers' com os dados separados
     await queryRunner.createTable(
       new Table({
         name: 'customers',
@@ -85,7 +82,6 @@ export class SplitClientsIntoUsersAndCustomers1705600900000 implements Migration
       true, // ifNotExists
     );
 
-    // 4️⃣ Adicionar foreign key de userId para users
     await queryRunner.createForeignKey(
       'customers',
       new TableForeignKey({
@@ -99,9 +95,6 @@ export class SplitClientsIntoUsersAndCustomers1705600900000 implements Migration
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    // Reverter a migração
-    
-    // 1️⃣ Remover foreign key
     const table = await queryRunner.getTable('customers');
     const foreignKey = table?.foreignKeys.find(
       (fk) => fk.columnNames.indexOf('userId') !== -1,
@@ -110,10 +103,8 @@ export class SplitClientsIntoUsersAndCustomers1705600900000 implements Migration
       await queryRunner.dropForeignKey('customers', foreignKey);
     }
 
-    // 2️⃣ Remover tabela customers
     await queryRunner.dropTable('customers', true);
 
-    // 3️⃣ Adicionar colunas de volta à tabela users
     await queryRunner.addColumn(
       'users',
       new TableColumn({
@@ -139,7 +130,6 @@ export class SplitClientsIntoUsersAndCustomers1705600900000 implements Migration
       }),
     );
 
-    // 4️⃣ Renomear tabela 'users' de volta para 'clients'
     await queryRunner.renameTable('users', 'clients');
   }
 }

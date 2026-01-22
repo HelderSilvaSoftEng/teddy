@@ -1,17 +1,10 @@
-import { Injectable, NotFoundException, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import type { IUserRepositoryPort } from '../../domain/ports/user.repository.port';
 import { USER_REPOSITORY_TOKEN } from '../../domain/ports/user.repository.port';
 import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
 import { getTracer } from '../../../../../app/telemetry';
+import { NotFoundException } from '../../../../../common/exceptions';
 
-/**
- * DeleteUserUseCase - Deletar (soft-delete) um usuário
- *
- * Fluxo:
- * 1. Verificar se usuário existe
- * 2. Deletar usuário (soft-delete via deletedAt)
- * 3. Confirmação
- */
 @Injectable()
 export class DeleteUserUseCase {
   private readonly logger = new Logger(DeleteUserUseCase.name);
@@ -32,18 +25,19 @@ export class DeleteUserUseCase {
     });
 
     try {
-      // 1️⃣ Verificar se usuário existe
       const findSpan = this.tracer.startSpan('find_user_by_id', { parent: span });
       const user = await this.UserRepository.findById(id);
       findSpan.end();
 
       if (!user) {
-        throw new NotFoundException('Usuário não encontrado');
+        throw new NotFoundException('Usuário não encontrado', {
+          entityType: 'User',
+          id,
+        });
       }
 
       this.logger.log(`🗑️ Deletando usuário: ${id}`);
 
-      // 2️⃣ Deletar usuário (soft-delete)
       const deleteSpan = this.tracer.startSpan('delete_user_repository', { parent: span });
       await this.UserRepository.delete(id);
       deleteSpan.end();
@@ -67,8 +61,8 @@ export class DeleteUserUseCase {
           status: '204',
           errorMessage: null,
         });
-      } catch {
-        // Silently fail to not break main operation
+      } catch (auditError: unknown) {
+        const auditErrorMsg = auditError instanceof Error ? auditError.message : String(auditError);
       } finally {
         auditSpan.end();
       }

@@ -23,10 +23,10 @@ export class AuditLog {
   userEmail!: string;
 
   @Column({ type: 'varchar', length: 50 })
-  action!: string; // CREATE, UPDATE, DELETE
+  action!: string;
 
   @Column({ type: 'varchar', length: 100 })
-  entityType!: string; // 'Customer', 'User', etc
+  entityType!: string; 
 
   @Column({ type: 'uuid' })
   entityId!: string;
@@ -38,7 +38,7 @@ export class AuditLog {
   newValues: Record<string, any> | null = null;
 
   @Column({ type: 'text', nullable: true })
-  changes: string | null = null; // Descrição das mudanças
+  changes: string | null = null; 
 
   @Column({ type: 'varchar', length: 45, nullable: true })
   ipAddress: string | null = null;
@@ -47,13 +47,13 @@ export class AuditLog {
   userAgent: string | null = null;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  endpoint: string | null = null; // Ex: POST /v1/customers
+  endpoint: string | null = null;
 
   @Column({ type: 'varchar', length: 10, nullable: true })
-  httpMethod: string | null = null; // GET, POST, PUT, DELETE
+  httpMethod: string | null = null;
 
   @Column({ type: 'varchar', length: 20, nullable: true })
-  status: string | null = null; // SUCCESS, ERROR
+  status: string | null = null; 
 
   @Column({ type: 'text', nullable: true })
   errorMessage: string | null = null;

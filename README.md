@@ -4,6 +4,51 @@
 
 ✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
 
+---
+
+## 📊 Dashboard Feature
+
+Novo dashboard com estatísticas em tempo real, usuários recentes e observabilidade completa via OpenTelemetry.
+
+**Recursos:**
+
+- 📈 Estatísticas de usuários, clientes e auditoria
+- 👥 Lista de usuários recentes
+- 🔐 Autenticação segura com JwtAuthGuard
+- 📊 Tracing distribuído com Jaeger
+- 🎨 Interface responsiva com CSS Modules
+
+**Documentação:**
+
+- [Dashboard Guide](./DASHBOARD.md) - Guia completo
+- [Implementation Summary](./IMPLEMENTATION_SUMMARY.md) - Resumo técnico
+- [Troubleshooting](./DASHBOARD_TROUBLESHOOTING.md) - Resolução de problemas
+
+**Quick Start:**
+
+```bash
+npm run start:backend     # Terminal 1
+npm run start:frontend    # Terminal 2
+docker-compose up -d      # Terminal 3
+# Acesse http://localhost:5173/dashboard
+```
+
+---
+
+## 🏗️ Architecture
+
+Hexagonal Architecture com separação clara de concerns:
+
+```
+domain/          → Entities e Business Rules
+ports/           → Interfaces e Contracts
+infra/           → Implementação de Repositories
+adapters/        → Controllers e DTOs
+presentation/    → Use-cases com Observabilidade
+```
+
+---
+
 [Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
 
 ## Generate a library
@@ -60,7 +105,7 @@ npx nx sync:check
 
 [Learn more about nx sync](https://nx.dev/reference/nx-commands#sync)
 
-## Set up CI!
+## Set up CI
 
 ### Step 1
 
@@ -103,6 +148,7 @@ Learn more:
 - [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
 
 And join the Nx community:
+
 - [Discord](https://go.nx.dev/community)
 - [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
 - [Our Youtube channel](https://www.youtube.com/@nxdevtools)

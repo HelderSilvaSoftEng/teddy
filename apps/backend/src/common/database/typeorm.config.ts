@@ -20,7 +20,7 @@ export const typeormConfig: TypeOrmModuleOptions = {
   migrations: [],
   synchronize: true,
   migrationsRun: false,
-  logging: process.env.DB_LOGGING === 'true',
+  logging: process.env.DB_LOGGING === 'true' || process.env.TYPEORM_LOGGING === 'true',
   logger: 'advanced-console',
   ssl:
     process.env.NODE_ENV === 'production'

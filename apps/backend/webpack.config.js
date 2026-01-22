@@ -9,6 +9,34 @@ module.exports = {
       devtoolModuleFilenameTemplate: '[absolute-resource-path]',
     }),
   },
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        use: ['source-map-loader'],
+        enforce: 'pre',
+        exclude: /node_modules/,
+      },
+    ],
+  },
+  ignoreWarnings: [
+    {
+      module: /@grpc\/proto-loader/,
+      message: /Failed to parse source map/,
+    },
+    {
+      module: /@opentelemetry\/instrumentation/,
+      message: /Failed to parse source map|Critical dependency/,
+    },
+    {
+      module: /require-in-the-middle/,
+      message: /Critical dependency/,
+    },
+    {
+      module: /node_modules/,
+      message: /Failed to parse source map/,
+    },
+  ],
   plugins: [
     new NxAppWebpackPlugin({
       target: 'node',

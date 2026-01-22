@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-import { MetricsService } from '../metrics/metrics.service';
+import { MetricsService } from '../modules/metrics/metrics.service';
 
 @Injectable()
 export class MetricsInterceptor implements NestInterceptor {
@@ -18,7 +18,7 @@ export class MetricsInterceptor implements NestInterceptor {
     const startTime = Date.now();
 
     return next.handle().pipe(
-      tap((response) => {
+      tap(() => {
         const statusCode = context.switchToHttp().getResponse().statusCode;
         const durationSeconds = (Date.now() - startTime) / 1000;
 
@@ -38,11 +38,6 @@ export class MetricsInterceptor implements NestInterceptor {
           url,
           statusCode,
           durationSeconds,
-        );
-
-        this.metricsService.recordApiError(
-          error.name || 'UnknownError',
-          url,
         );
 
         throw error;

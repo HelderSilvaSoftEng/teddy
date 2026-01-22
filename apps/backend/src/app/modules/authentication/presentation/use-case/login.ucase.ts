@@ -9,6 +9,7 @@ import { USER_REPOSITORY_TOKEN } from '../../../users/domain/ports/user.reposito
 import { User } from "../../../users/domain/entities/user.entity";
 import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
 import { getTracer } from '../../../../../app/telemetry';
+import { NotFoundException } from '../../../../../common/exceptions';
 
 @Injectable()
 export class LoginUseCase {
@@ -32,9 +33,6 @@ export class LoginUseCase {
     });
 
     try {
-      this.logger.log(`🔐 Iniciando login para: ${user.email}`);
-
-      // 1️⃣ Buscar usuário no BD para ter dados atualizados
       const findUserSpan = this.tracer.startSpan('find_user', {
         parent: span,
         attributes: {
@@ -47,30 +45,30 @@ export class LoginUseCase {
       findUserSpan.end();
 
       if (!currentUser) {
-        throw new Error('Usuário não encontrado');
+        throw new NotFoundException('Usuário não encontrado', {
+          entityType: 'User',
+          id: user.id,
+        });
       }
 
-      // 2️⃣ Preparar payload do Access Token (curta duração - 15 min)
       const accessTokenPayload: TokenPayloadUser = {
         sub: currentUser.id,
         email: currentUser.email,
         name: currentUser.email,
       };
 
-      // 3️⃣ Gerar Access Token
       const tokenSpan = this.tracer.startSpan('generate_tokens', { parent: span });
 
-      const accessTokenTtl = this.configService.get<number>('JWT_EXPIRATION') ?? 3600; // 1 hora default
+      const accessTokenTtl = this.configService.get<number>('JWT_EXPIRATION') ?? 3600;
       const accessToken = this.jwtService.sign(accessTokenPayload, {
-        expiresIn: `${accessTokenTtl}s`, // ✅ Converter para string com 's' (segundos)
+        expiresIn: `${accessTokenTtl}s`,
         secret: this.configService.get<string>('JWT_SECRET'),
       });
 
       this.logger.log(`✅ Access Token gerado com TTL ${accessTokenTtl}s: ${currentUser.email}`);
 
-      // 4️⃣ Gerar Refresh Token (7 dias) com JTI único
       const jti = randomUUID();
-      const refreshTokenTtl = this.configService.get('REFRESH_TOKEN_TTL', 604800); // 7 dias
+      const refreshTokenTtl = this.configService.get('REFRESH_TOKEN_TTL', 604800);
 
       const refreshTokenPayload = {
         sub: currentUser.id,
@@ -79,22 +77,19 @@ export class LoginUseCase {
       };
 
       const refreshToken = this.jwtService.sign(refreshTokenPayload, {
-        expiresIn: `${refreshTokenTtl}s`, // ✅ Converter para string com 's' (segundos)
+        expiresIn: `${refreshTokenTtl}s`,
         secret: this.configService.get<string>('REFRESH_TOKEN_SECRET') ?? this.configService.get<string>('JWT_SECRET'),
       });
 
       this.logger.log(`✅ Refresh Token gerado com TTL ${refreshTokenTtl}s: ${currentUser.email}`);
       tokenSpan.end();
 
-      // 5️⃣ Hash do JTI usando o método estático da entity
       const hashSpan = this.tracer.startSpan('hash_jti', { parent: span });
       const hashedJti = User.hashPassword(jti);
       hashSpan.end();
 
-      // 6️⃣ Incrementar contador de acessos (login count)
       currentUser.incrementAccessCount();
 
-      // 7️⃣ Salvar refresh token hash no usuário
       currentUser.refreshTokenHash = hashedJti;
       currentUser.refreshTokenExpires = new Date(Date.now() + refreshTokenTtl * 1000);
 
@@ -107,13 +102,11 @@ export class LoginUseCase {
 
       await this.userRepository.update(currentUser.id, currentUser);
 
-      // 8️⃣ Incrementar contador de acessos no repositório (SQL)
       await this.userRepository.incrementAccessCount(currentUser.id);
       updateUserSpan.end();
 
       this.logger.log(`✅ Refresh token hash e contador de acessos atualizados no BD: ${currentUser.email}`);
 
-      // 9️⃣ Setar cookies httpOnly com tokens
       const accessTokenExpires = new Date();
       accessTokenExpires.setSeconds(accessTokenExpires.getSeconds() + (this.configService.get<number>('JWT_EXPIRATION') ?? 900));
 
@@ -142,7 +135,6 @@ export class LoginUseCase {
 
       this.logger.log(`✅ Cookies httpOnly setados: ${currentUser.email}`);
 
-      // 🔟 Registrar auditoria de login
       const auditSpan = this.tracer.startSpan('audit_login', {
         parent: span,
         attributes: {
@@ -170,7 +162,6 @@ export class LoginUseCase {
       } catch (auditError: unknown) {
         const auditErrorMsg = auditError instanceof Error ? auditError.message : String(auditError);
         this.logger.warn(`⚠️ Falha ao registrar auditoria de login: ${auditErrorMsg}`);
-        // Continuar mesmo se auditoria falhar (não quebra o login)
       }
 
       auditSpan.end();
@@ -179,7 +170,6 @@ export class LoginUseCase {
         'login.accessCount': currentUser.accessCount,
       });
 
-      // 1️⃣ Retornar response com access token + refresh token + accessCount
       return {
         user: currentUser.email,
         email: currentUser.email,

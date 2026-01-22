@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import type { IUserRepositoryPort } from '../../domain/ports/user.repository.port';
 import { USER_REPOSITORY_TOKEN } from '../../domain/ports/user.repository.port';
 import { User } from '../../domain/entities/user.entity';
 import { UpdateUserDto } from '../../adapters/dtos/update-user.dto';
 import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
 import { getTracer } from '../../../../../app/telemetry';
+import { NotFoundException } from '../../../../../common/exceptions';
 
 /**
  * UpdateUserUseCase - Lógica para atualizar um usuário existente
@@ -29,21 +30,21 @@ export class UpdateUserUseCase {
     });
 
     try {
-      // 1️⃣ Buscar usuário
       const findSpan = this.tracer.startSpan('find_user_by_id', { parent: span });
       const user = await this.UserRepository.findById(id);
       findSpan.end();
 
       if (!user) {
-        throw new NotFoundException('Usuário não encontrado');
+        throw new NotFoundException('Usuário não encontrado', {
+          entityType: 'User',
+          id,
+        });
       }
 
       this.logger.log(`📝 Atualizando usuário: ${id}`);
 
-      // 2️⃣ Atualizar dados usando método da entidade
       user.update(updateUserDto);
 
-      // 3️⃣ Salvar no repositório
       const updateSpan = this.tracer.startSpan('update_user_repository', { parent: span });
       const updated = await this.UserRepository.update(id, user);
       updateSpan.end();
@@ -67,8 +68,8 @@ export class UpdateUserUseCase {
           status: '200',
           errorMessage: null,
         });
-      } catch {
-        // Silently fail to not break main operation
+      } catch (auditError: unknown) {
+        const auditErrorMsg = auditError instanceof Error ? auditError.message : String(auditError);
       } finally {
         auditSpan.end();
       }

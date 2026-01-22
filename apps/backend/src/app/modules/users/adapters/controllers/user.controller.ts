@@ -23,6 +23,7 @@ import {
 } from '../../presentation/ports';
 import { UserMapper } from '../../infra/mappers/user.mapper';
 import { JwtAuthGuard } from '../../../../../common/guards/jwt-auth.guard';
+import { Public } from '../../../../../common/decorators';
 
 @ApiTags('👥 Usuários')
 @ApiBearerAuth('access-token')
@@ -47,6 +48,7 @@ export class UserController {
   ) {}
 
   @Post()
+  @Public()
   @ApiOperation({ summary: 'Criar novo usuário' })
   @ApiResponse({ status: 201, description: 'Usuário criado com sucesso', type: UserResponseDto })
   @ApiResponse({ status: 400, description: 'Dados inválidos' })

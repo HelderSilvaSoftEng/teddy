@@ -1,20 +1,12 @@
-import { Injectable, BadRequestException, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import type { IUserRepositoryPort } from '../../domain/ports/user.repository.port';
 import { USER_REPOSITORY_TOKEN } from '../../domain/ports/user.repository.port';
 import { User, UserStatusEnum } from '../../domain/entities/user.entity';
 import { CreateUserDto } from '../../adapters/dtos/create-user.dto';
 import { LogAuditUseCase } from '../../../../../common/modules/audit/presentation/use-cases';
 import { getTracer } from '../../../../../app/telemetry';
+import { ConflictException } from '../../../../../common/exceptions';
 
-/**
- * CreateUserUseCase - Lógica para criar um novo usuário
- *
- * Fluxo:
- * 1. Validar email único
- * 2. Criar instância da entidade User
- * 3. Salvar no repositório
- * 4. Retornar usuário criado
- */
 @Injectable()
 export class CreateUserUseCase {
   private readonly logger = new Logger(CreateUserUseCase.name);
@@ -35,18 +27,17 @@ export class CreateUserUseCase {
     });
 
     try {
-      // 1️⃣ Validar email único
       const validateSpan = this.tracer.startSpan('validate_email_unique', { parent: span });
-      const existingUser = await this.UserRepository.findByEmail(
-        createUserDto.email,
-      );
+      const existingUser = await this.UserRepository.findByEmail(createUserDto.email);
       validateSpan.end();
 
       if (existingUser) {
-        throw new BadRequestException('Email já cadastrado');
+        throw new ConflictException('Email já cadastrado', {
+          field: 'email',
+          value: createUserDto.email,
+        });
       }
 
-      // 2️⃣ Criar instância da entidade com dados do DTO
       const user = new User({
         email: createUserDto.email,
         password: User.hashPassword(createUserDto.password),
@@ -56,7 +47,6 @@ export class CreateUserUseCase {
 
       this.logger.log(`📝 Criando usuário: ${user.email}`);
 
-      // 3️⃣ Salvar no repositório
       const createSpan = this.tracer.startSpan('create_user_repository', { parent: span });
       const createdUser = await this.UserRepository.create(user);
       createSpan.end();
@@ -80,8 +70,9 @@ export class CreateUserUseCase {
           status: '201',
           errorMessage: null,
         });
-      } catch {
-        // Silently fail to not break main operation
+      } catch (auditError: unknown) {
+        const auditErrorMsg = auditError instanceof Error ? auditError.message : String(auditError);
+        this.logger.warn(`⚠️ Falha ao registrar auditoria de criação: ${auditErrorMsg}`);
       } finally {
         auditSpan.end();
       }

@@ -14,7 +14,7 @@ export class DatabaseModule implements OnModuleInit {
 
   async onModuleInit() {
     try {
-      // Aguardar um pouco para garantir que TypeORM sincronizou o banco
+      // Wait for TypeORM to sync the database
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       if (this.dataSource.isInitialized) {
@@ -22,7 +22,9 @@ export class DatabaseModule implements OnModuleInit {
         await runCustomersSeed(this.dataSource);
       }
     } catch (error) {
-      console.error('❌ Error running seeds:', error);
+      console.error('Error running seeds:', error);
+      throw error;
     }
   }
 }
+

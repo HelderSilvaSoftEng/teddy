@@ -1,6 +1,7 @@
-import { createContext, useContext, useReducer, ReactNode } from 'react';
+import { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
 import { ICurrentUser } from '../../domain';
 import { tokenStorage } from '../../infra';
+import { authRepository } from '../../infra/repositories/auth.repository';
 
 interface AuthState {
   user: ICurrentUser | null;
@@ -64,6 +65,41 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, initialState);
+
+  // Carregar usuário ao montar o provider se tiver token
+  useEffect(() => {
+    const loadCurrentUser = async () => {
+      if (tokenStorage.isAuthenticated() && !state.user) {
+        try {
+          dispatch({ type: 'LOGIN_START' });
+          const user = await authRepository.getCurrentUser();
+          dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+        } catch (error) {
+          console.error('Erro ao carregar usuário atual:', error);
+          tokenStorage.clear();
+          dispatch({ type: 'LOGOUT' });
+        }
+      }
+    };
+
+    loadCurrentUser();
+  }, []);
+
+  // Recarregar usuário quando isAuthenticated muda para true (após login)
+  useEffect(() => {
+    const reloadUserAfterLogin = async () => {
+      if (state.isAuthenticated && !state.user) {
+        try {
+          const user = await authRepository.getCurrentUser();
+          dispatch({ type: 'SET_USER', payload: user });
+        } catch (error) {
+          console.error('Erro ao recarregar usuário após login:', error);
+        }
+      }
+    };
+
+    reloadUserAfterLogin();
+  }, [state.isAuthenticated]);
 
   const setUser = (user: ICurrentUser) => {
     dispatch({ type: 'SET_USER', payload: user });

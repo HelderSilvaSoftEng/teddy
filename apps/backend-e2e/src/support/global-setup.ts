@@ -9,7 +9,15 @@ module.exports = async function () {
 
   const host = process.env.HOST ?? 'localhost';
   const port = process.env.PORT ? Number(process.env.PORT) : 3000;
-  await waitForPortOpen(port, { host });
+  
+  try {
+    console.log(`⏳ Waiting for server at ${host}:${port}...`);
+    await waitForPortOpen(port, { host });
+    console.log(`✅ Server ready at ${host}:${port}`);
+  } catch (error) {
+    console.error(`❌ Failed to connect to server at ${host}:${port}:`, error);
+    throw error;
+  }
 
   // Hint: Use `globalThis` to pass variables to global teardown.
   globalThis.__TEARDOWN_MESSAGE__ = '\nTearing down...\n';

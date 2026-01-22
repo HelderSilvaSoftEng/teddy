@@ -7,6 +7,9 @@ import { AuthenticationModule } from './modules/authentication/authentication.mo
 import { AuditModule } from '../common/modules/audit/audit.module';
 import { HealthModule } from '../common/modules/health';
 import { MetricsModule, MetricsMiddleware } from '../common/modules/metrics';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { GlobalExceptionFilter, ValidationExceptionFilter } from '../common/exceptions';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -21,13 +24,14 @@ import { MetricsModule, MetricsMiddleware } from '../common/modules/metrics';
     AuditModule,
     HealthModule,
     MetricsModule,
+    DashboardModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     // Registrar middleware de métricas para todas as rotas
-    consumer.apply(MetricsMiddleware).forRoutes({ path: '*', method: RequestMethod.ALL });
+    consumer.apply(MetricsMiddleware).forRoutes({ path: '*path', method: RequestMethod.ALL });
   }
 }

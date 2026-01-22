@@ -5,9 +5,10 @@ import './sidebar.css';
 interface SidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
+  onOpenUserModal?: () => void;
 }
 
-export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
+export function Sidebar({ isOpen = false, onClose, onOpenUserModal }: SidebarProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -40,6 +41,13 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             <span>Home</span>
           </button>
           <button
+            className={`sidebar-link ${location.pathname === '/dashboard' ? 'active' : ''}`}
+            onClick={() => handleNavigation('/dashboard')}
+          >
+            <span className="material-symbols-outlined">dashboard</span>
+            <span>Dashboard</span>
+          </button>
+          <button
             className={`sidebar-link ${location.pathname === '/customers' ? 'active' : ''}`}
             onClick={() => handleNavigation('/customers')}
           >
@@ -52,6 +60,16 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
           >
             <span className="material-symbols-outlined">star</span>
             <span>Clientes selecionados</span>
+          </button>
+          <button
+            className="sidebar-link"
+            onClick={() => {
+              onOpenUserModal?.();
+              onClose?.();
+            }}
+          >
+            <span className="material-symbols-outlined">admin_panel_settings</span>
+            <span>Cadastro de Usuários</span>
           </button>
         </nav>
 
