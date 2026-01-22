@@ -44,7 +44,6 @@ export function UpdateCustomerModal({
 
     try {
       await onSubmit({
-        ...customer,
         name: formData.name,
         salary: formData.salary ? parseFloat(formData.salary) : undefined,
         company: formData.company || undefined,

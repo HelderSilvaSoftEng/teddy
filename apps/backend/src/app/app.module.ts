@@ -32,6 +32,6 @@ import { AppController } from './app.controller';
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     // Registrar middleware de métricas para todas as rotas
-    consumer.apply(MetricsMiddleware).forRoutes({ path: '*', method: RequestMethod.ALL });
+    consumer.apply(MetricsMiddleware).forRoutes({ path: '*path', method: RequestMethod.ALL });
   }
 }
