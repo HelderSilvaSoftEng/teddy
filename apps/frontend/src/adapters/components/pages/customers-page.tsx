@@ -7,11 +7,13 @@ import { CustomerCard } from '../customer-card';
 import { CreateCustomerModal } from '../modals/create-customer-modal';
 import { UpdateCustomerModal } from '../modals/UpdateCustomerModal';
 import { ConfirmDeleteModal } from '../modals/confirm-delete-modal';
+import { useToast } from '../../../presentation';
 import './customers-page.css';
 
 const ITEMS_PER_PAGE = 16;
 
 export function CustomersPage({ onOpenUserModal }: { onOpenUserModal?: () => void }) {
+  const { addToast } = useToast();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -49,9 +51,11 @@ export function CustomersPage({ onOpenUserModal }: { onOpenUserModal?: () => voi
       const newCustomer = await useCase.execute(data);
       setCustomers((prev) => [...prev, newCustomer].sort((a, b) => (a.name || '').localeCompare(b.name || '')));
       setShowCreateModal(false);
+      addToast(`Cliente "${newCustomer.name}" criado com sucesso!`, 'success');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao criar cliente';
       setError(message);
+      addToast(message, 'error');
     }
   };
 
@@ -69,6 +73,7 @@ export function CustomersPage({ onOpenUserModal }: { onOpenUserModal?: () => voi
         setCustomers((prev) =>
           prev.map((c) => (c.id === customerToEdit.id ? updatedCustomer : c))
         );
+        addToast('Cliente atualizado com sucesso!', 'success');
       }
       setShowUpdateModal(false);
       setCustomerToEdit(null);
@@ -85,9 +90,11 @@ export function CustomersPage({ onOpenUserModal }: { onOpenUserModal?: () => voi
       await useCase.execute(customerToDelete.id);
       setCustomers((prev) => prev.filter((c) => c.id !== customerToDelete.id));
       setCustomerToDelete(null);
+      addToast('Cliente deletado com sucesso!', 'success');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao deletar cliente';
       setError(message);
+      addToast(message, 'error');
     }
   };
 

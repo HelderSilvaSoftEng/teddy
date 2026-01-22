@@ -10,6 +10,7 @@ import {
 } from '../adapters/components/pages';
 import { DashboardPage } from '../presentation/pages/dashboard-page';
 import { UserManagementModal } from '../adapters/components/modals/user-management-modal';
+import { ToastContainer } from '../adapters/components/common';
 import '../styles.css';
 
 export function App() {
@@ -69,6 +70,8 @@ export function App() {
           onClose={() => setShowUserModal(false)}
         />
       )}
+      
+      <ToastContainer />
     </>
   );
 }
