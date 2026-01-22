@@ -2,7 +2,6 @@ import axios from 'axios';
 
 describe('E2E: Audit Logging', () => {
   let authToken: string;
-  let userId: string;
 
   beforeAll(async () => {
     // Setup: Create user and login
@@ -12,7 +11,6 @@ describe('E2E: Audit Logging', () => {
     };
 
     const createResponse = await axios.post('/api/users', userData);
-    userId = createResponse.data.id;
 
     const loginResponse = await axios.post('/api/auth/login', {
       email: userData.email,
@@ -84,14 +82,14 @@ describe('E2E: Audit Logging', () => {
       try {
         const response = await axios.get('/api/health');
         expect(response.status).toBe(200);
-      } catch (error: any) {
-        // Health endpoint might not exist, but shouldn't crash
-        expect(error.response?.status).not.toBe(500);
+      } catch (error: unknown) {
+        const axiosError = error as any;
+        expect(axiosError.response?.status).not.toBe(500);
       }
     });
 
     it('should handle concurrent requests', async () => {
-      const promises = [];
+      const promises: Promise<any>[] = [];
 
       // Create 5 concurrent requests
       for (let i = 0; i < 5; i++) {
