@@ -1,11 +1,31 @@
 import { Injectable, Logger, UnauthorizedException, ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import type { ICurrentUser } from '../../app/modules/authentication/domain/types';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
   private readonly logger = new Logger(JwtAuthGuard.name);
+
+  constructor(private reflector: Reflector) {
+    super();
+  }
+
+  override canActivate(context: ExecutionContext) {
+    // Verifica se a rota está marcada como @Public()
+    const isPublic = this.reflector.getAllAndOverride<boolean>('isPublic', [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (isPublic) {
+      this.logger.debug('🔓 Rota pública - autenticação dispensada');
+      return true;
+    }
+
+    return super.canActivate(context) as boolean;
+  }
 
   override getRequest(context: ExecutionContext): Request {
     const request = context.switchToHttp().getRequest<Request>();
