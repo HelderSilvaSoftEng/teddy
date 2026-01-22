@@ -10,7 +10,7 @@ test('has title', async ({ page }) => {
   } catch {
     // Page might have different content
     const pageContent = page.locator('body');
-    expect(pageContent).toBeDefined();
+    await expect(pageContent).toBeVisible();
   }
 });
 
