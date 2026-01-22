@@ -1,4 +1,0 @@
-
-> @teddy-challenger/source@0.0.0 backend:dev
-> npx nx serve backend --configuration=development
-

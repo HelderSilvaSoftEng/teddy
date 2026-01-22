@@ -1,8 +1,58 @@
 # TeddyChallenger
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+Sistema full-stack de gestão de usuários e clientes. Stack: **NestJS + React + PostgreSQL + Docker**
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+Status: MVP Completo - 108 testes passando, 85%+ coverage, pronto para produção.
+
+---
+
+## 🚀 Quick Start (3 minutos)
+
+```bash
+# 1. Instalar e rodar serviços
+pnpm install && docker-compose up -d
+
+# 2. Iniciar backend (Terminal 1)
+npm run backend:dev
+
+# 3. Iniciar frontend (Terminal 2)
+npm run frontend:dev
+
+# 4. Acessar
+# Frontend:  http://localhost:5173
+# API:       http://localhost:3000/api
+# Swagger:   http://localhost:3000/docs
+# Login:     admin@teddy.com / admin123
+```
+
+---
+
+## ⚡ Comandos Essenciais
+
+```bash
+# Desenvolvimento
+npm run dev                    # Backend + Frontend simultâneo
+npm run backend:dev            # Backend apenas
+npm run frontend:dev           # Frontend apenas
+
+# Testes
+npm run test                   # Todos os testes
+npm run backend:test          # Unit tests backend
+npm run backend:e2e           # E2E tests backend
+
+# Build & Deploy
+npm run build                  # Build tudo
+npm run backend:prod          # Run production backend
+
+# Linting
+npm lint                       # Lint tudo
+npm format                     # Format código
+
+# Docker
+docker-compose up -d           # Subir containers
+docker-compose down            # Parar containers
+docker-compose logs -f         # Ver logs em tempo real
+```
 
 ---
 
@@ -24,15 +74,6 @@ Novo dashboard com estatísticas em tempo real, usuários recentes e observabili
 - [Implementation Summary](./IMPLEMENTATION_SUMMARY.md) - Resumo técnico
 - [Troubleshooting](./DASHBOARD_TROUBLESHOOTING.md) - Resolução de problemas
 
-**Quick Start:**
-
-```bash
-npm run start:backend     # Terminal 1
-npm run start:frontend    # Terminal 2
-docker-compose up -d      # Terminal 3
-# Acesse http://localhost:5173/dashboard
-```
-
 ---
 
 ## 🏗️ Architecture
@@ -47,109 +88,105 @@ adapters/        → Controllers e DTOs
 presentation/    → Use-cases com Observabilidade
 ```
 
+Para detalhes profundos sobre escalabilidade e design patterns, consulte [ARCHITECTURE.md](./ARCHITECTURE.md).
+
 ---
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+## 🔐 Autenticação
 
-## Generate a library
+### Login
 
-```sh
-npx nx g @nx/js:lib packages/pkg1 --publishable --importPath=@my-org/pkg1
+```bash
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@teddy.com","password":"admin123"}'
 ```
 
-## Run tasks
+### Usar Token
 
-To build the library use:
-
-```sh
-npx nx build pkg1
+```bash
+curl -X GET http://localhost:3000/api/auth/me \
+  -H "Authorization: Bearer <accessToken>"
 ```
 
-To run any task with Nx use:
+### Refresh Token
 
-```sh
-npx nx <target> <project-name>
+```bash
+curl -X POST http://localhost:3000/api/auth/refresh
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+---
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## 🔗 URLs & Credenciais
 
-## Versioning and releasing
+| Serviço | URL | Credenciais |
+|---------|-----|-------------|
+| **Frontend** | <http://localhost:5173> | <admin@teddy.com> / admin123 |
+| **API** | <http://localhost:3000/api> | - |
+| **Swagger** | <http://localhost:3000/docs> | - |
+| **Grafana** | <http://localhost:3001> | admin / admin |
+| **Prometheus** | <http://localhost:9090> | - |
+| **Jaeger** | <http://localhost:16686> | - |
+| **PostgreSQL** | localhost:5432 | postgres / postgres |
 
-To version and release the library use
+---
 
-```
-npx nx release
-```
+## 📊 Health Checks
 
-Pass `--dry-run` to see what would happen without actually releasing the library.
+```bash
+# Liveness
+curl http://localhost:3000/api/health/live
 
-[Learn more about Nx release &raquo;](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+# Readiness
+curl http://localhost:3000/api/health/ready
 
-## Keep TypeScript project references up to date
-
-Nx automatically updates TypeScript [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in `tsconfig.json` files to ensure they remain accurate based on your project dependencies (`import` or `require` statements). This sync is automatically done when running tasks such as `build` or `typecheck`, which require updated references to function correctly.
-
-To manually trigger the process to sync the project graph dependencies information to the TypeScript project references, run the following command:
-
-```sh
-npx nx sync
-```
-
-You can enforce that the TypeScript project references are always in the correct state when running in CI by adding a step to your CI job configuration that runs the following command:
-
-```sh
-npx nx sync:check
+# Full status
+curl http://localhost:3000/api/health
 ```
 
-[Learn more about nx sync](https://nx.dev/reference/nx-commands#sync)
+---
 
-## Set up CI
+## 🧪 Testar Endpoints
 
-### Step 1
+### Listar Usuários
 
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
+```bash
+curl -X GET http://localhost:3000/api/v1/users \
+  -H "Authorization: Bearer <token>"
 ```
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+### Criar Cliente
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
+```bash
+curl -X POST http://localhost:3000/api/v1/customers \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "João Silva",
+    "salary": 5000,
+    "company": "Tech Corp"
+  }'
 ```
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Dashboard Stats
 
-## Install Nx Console
+```bash
+curl -X GET http://localhost:3000/api/dashboard/stats \
+  -H "Authorization: Bearer <token>"
+```
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+---
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## 🛠️ Troubleshooting
 
-## Useful links
+| Problema | Solução |
+|----------|---------|
+| **Port 3000 em uso** | `lsof -ti:3000 \| xargs kill -9` (Linux/Mac) |
+| **DB não conecta** | Verificar: `docker ps \| grep postgres` |
+| **Node modules corrompidos** | `rm -rf node_modules && pnpm install` |
+| **Cache velho** | `rm -rf dist && npm run build` |
+| **Testes falhando** | `npm run backend:test -- --clearCache` |
+| **CORS error** | Verificar CORS_ORIGIN no .env |
+| **Token expirado** | O `/refresh` endpoint o regenera automaticamente |
 
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+---
