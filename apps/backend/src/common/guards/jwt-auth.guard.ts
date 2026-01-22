@@ -40,6 +40,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       this.logger.debug(`🔑 Authorization header setado com token: ${token.substring(0, 20)}...`);
     } else {
       this.logger.warn(`⚠️ Token inválido ou não encontrado: "${token}"`);
+      this.logger.warn(`📍 Current auth header: ${request.headers.authorization}`);
     }
 
     return request;

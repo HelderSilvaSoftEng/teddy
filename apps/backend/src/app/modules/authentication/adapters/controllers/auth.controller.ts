@@ -106,13 +106,14 @@ export class AuthController {
     status: 401,
     description: 'Refresh token inválido ou expirado',
   })
-  async refresh(@Req() request: Request, @Res() response: Response): Promise<void> {
+  async refresh(@Req() request: Request, @Res() response: Response, @Body() body?: any): Promise<void> {
     try {
       this.logger.debug('POST /auth/refresh chamado');
 
-      const refreshToken = request.cookies['Authentication'];
+      // Aceita refreshToken do cookie OU do body
+      const refreshToken = request.cookies['Authentication'] || body?.refreshToken;
       if (!refreshToken) {
-        throw new BadRequestException('Refresh token não encontrado no cookie');
+        throw new BadRequestException('Refresh token não encontrado no cookie ou body');
       }
 
       const result = await this.refreshTokenUseCase.execute(refreshToken, response);

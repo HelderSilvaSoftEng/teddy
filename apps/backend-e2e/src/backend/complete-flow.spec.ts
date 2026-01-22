@@ -65,9 +65,9 @@ describe('E2E: Complete User Flow', () => {
           email: userData.email,
           password: 'WrongPassword123!',
         });
-        fail('Should have thrown 404 Not Found');
+        fail('Should have thrown 401 Unauthorized');
       } catch (error: any) {
-        expect(error.response?.status).toBe(404);
+        expect(error.response?.status).toBe(401);
       }
     });
 
@@ -133,12 +133,15 @@ describe('E2E: Complete User Flow', () => {
     });
 
     it('should get all customers', async () => {
+      console.log('🔍 authToken:', authToken ? `${authToken.substring(0, 20)}...` : 'UNDEFINED/EMPTY');
       const response = await axios.get('/api/v1/customers', {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.data)).toBe(true);
+      expect(response.data).toHaveProperty('data');
+      expect(Array.isArray(response.data.data)).toBe(true);
+      expect(response.data).toHaveProperty('total');
     });
 
     it('should get customer by id', async () => {
@@ -152,7 +155,8 @@ describe('E2E: Complete User Flow', () => {
 
     it('should fail to get non-existent customer', async () => {
       try {
-        await axios.get('/api/v1/customers/non-existent-id', {
+        // Use a valid UUID format but non-existent ID
+        await axios.get('/api/v1/customers/550e8400-e29b-41d4-a716-446655440000', {
           headers: { Authorization: `Bearer ${authToken}` },
         });
         fail('Should have thrown 404');

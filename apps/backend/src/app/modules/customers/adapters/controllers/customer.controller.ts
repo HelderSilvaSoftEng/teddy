@@ -12,6 +12,9 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
+  ParseUUIDPipe,
+  BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -74,7 +77,7 @@ export class CustomerController {
     @Body() createCustomerDto: CreateCustomerDto,
   ): Promise<CustomerResponseDto> {
     try {
-      const userId = request.user.sub;
+      const userId = request.user.id;
       this.logger.log(`📝 Criando cliente para usuário: ${userId}`);
 
       const customer = await this.createCustomerUseCase.execute(userId, createCustomerDto);
@@ -174,20 +177,29 @@ export class CustomerController {
     description: 'Cliente não encontrado',
   })
   @ApiResponse({
+    status: 400,
+    description: 'ID inválido (deve ser UUID)',
+  })
+  @ApiResponse({
     status: 401,
     description: 'Não autenticado',
   })
-  async findOne(@Param('id') id: string): Promise<CustomerResponseDto> {
+  async findOne(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+  ): Promise<CustomerResponseDto> {
     try {
       this.logger.log(`🔍 Buscando cliente: ${id}`);
 
       const customer = await this.findCustomerByIdUseCase.execute(id);
       if (!customer) {
-        throw new Error('Cliente não encontrado');
+        throw new NotFoundException('Cliente não encontrado');
       }
 
       return this.customerMapper.toResponseDto(customer);
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       this.logger.error(`❌ Erro ao buscar cliente: ${error}`);
       throw error;
     }
@@ -214,11 +226,15 @@ export class CustomerController {
     description: 'Cliente não encontrado',
   })
   @ApiResponse({
+    status: 400,
+    description: 'ID inválido (deve ser UUID)',
+  })
+  @ApiResponse({
     status: 401,
     description: 'Não autenticado',
   })
   async update(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() updateCustomerDto: UpdateCustomerDto,
   ): Promise<CustomerResponseDto> {
     try {
@@ -226,11 +242,14 @@ export class CustomerController {
 
       const customer = await this.updateCustomerUseCase.execute(id, updateCustomerDto);
       if (!customer) {
-        throw new Error('Cliente não encontrado');
+        throw new NotFoundException('Cliente não encontrado');
       }
 
       return this.customerMapper.toResponseDto(customer);
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       this.logger.error(`❌ Erro ao atualizar cliente: ${error}`);
       throw error;
     }
@@ -263,10 +282,16 @@ export class CustomerController {
     description: 'Cliente não encontrado',
   })
   @ApiResponse({
+    status: 400,
+    description: 'ID inválido (deve ser UUID)',
+  })
+  @ApiResponse({
     status: 401,
     description: 'Não autenticado',
   })
-  async remove(@Param('id') id: string): Promise<{ message: string }> {
+  async remove(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+  ): Promise<{ message: string }> {
     try {
       this.logger.log(`🗑️ Deletando cliente: ${id}`);
 

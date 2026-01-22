@@ -167,6 +167,7 @@ export class RefreshTokenUseCase {
 
       return {
         accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);

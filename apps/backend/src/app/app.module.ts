@@ -9,6 +9,7 @@ import { HealthModule } from '../common/modules/health';
 import { MetricsModule, MetricsMiddleware } from '../common/modules/metrics';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { GlobalExceptionFilter, ValidationExceptionFilter } from '../common/exceptions';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { GlobalExceptionFilter, ValidationExceptionFilter } from '../common/exce
     MetricsModule,
     DashboardModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [],
 })
 export class AppModule implements NestModule {
