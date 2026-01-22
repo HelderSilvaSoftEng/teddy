@@ -27,4 +27,3 @@ export class DatabaseModule implements OnModuleInit {
     }
   }
 }
-
