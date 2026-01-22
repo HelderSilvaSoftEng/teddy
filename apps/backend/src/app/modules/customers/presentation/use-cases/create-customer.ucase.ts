@@ -49,8 +49,8 @@ export class CreateCustomerUseCase {
           status: '201',
           errorMessage: null,
         });
-      } catch {
-        // Silently fail to not break main operation
+      } catch (auditError: unknown) {
+        const auditErrorMsg = auditError instanceof Error ? auditError.message : String(auditError);
       } finally {
         auditSpan.end();
       }

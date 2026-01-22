@@ -4,7 +4,7 @@ export interface IAuditQueryPort {
   getTotalCount(): Promise<number>;
   getRecentAuditLogs(limit: number): Promise<Array<{
     id: string;
-    context: string;
+    userEmail: string;
     action: string;
     createdAt: Date;
   }>>;

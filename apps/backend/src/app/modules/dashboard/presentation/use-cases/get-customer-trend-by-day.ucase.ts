@@ -1,5 +1,5 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
-import { trace, context } from '@opentelemetry/api';
+import { trace } from '@opentelemetry/api';
 import type { IDashboardRepositoryPort } from '../../domain/ports/dashboard.repository.port';
 import { DASHBOARD_REPOSITORY_TOKEN } from '../../domain/ports/dashboard.repository.port';
 import type { ICurrentUser } from '../../../authentication/domain/types';

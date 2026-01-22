@@ -78,15 +78,8 @@ export class AuthController {
     @CurrentUser() user: ICurrentUser,
     @Res() response: Response,
   ): Promise<void> {
-    try {
-      const result = await this.loginUseCase.execute(user, response);
-      response.status(200).json(result);
-    } catch (error) {
-      this.logger.error(
-        `❌ Erro em login: ${error instanceof Error ? error.message : String(error)}`,
-      );
-      throw error;
-    }
+    const result = await this.loginUseCase.execute(user, response);
+    response.status(200).json(result);
   }
 
   @Post('refresh')
@@ -107,24 +100,13 @@ export class AuthController {
     description: 'Refresh token inválido ou expirado',
   })
   async refresh(@Req() request: Request, @Res() response: Response, @Body() body?: any): Promise<void> {
-    try {
-      this.logger.debug('POST /auth/refresh chamado');
-
-      // Aceita refreshToken do cookie OU do body
-      const refreshToken = request.cookies['Authentication'] || body?.refreshToken;
-      if (!refreshToken) {
-        throw new BadRequestException('Refresh token não encontrado no cookie ou body');
-      }
-
-      const result = await this.refreshTokenUseCase.execute(refreshToken, response);
-
-      response.status(200).json(result);
-    } catch (error) {
-      this.logger.error(
-        `❌ Erro em refresh: ${error instanceof Error ? error.message : String(error)}`,
-      );
-      throw error;
+    const refreshToken = request.cookies['Authentication'] || body?.refreshToken;
+    if (!refreshToken) {
+      throw new BadRequestException('Refresh token não encontrado no cookie ou body');
     }
+
+    const result = await this.refreshTokenUseCase.execute(refreshToken, response);
+    response.status(200).json(result);
   }
 
   @Post('logout')
@@ -148,17 +130,8 @@ export class AuthController {
     @CurrentUser() user: ICurrentUser,
     @Res() response: Response,
   ): Promise<void> {
-    try {
-      this.logger.debug(`POST /auth/logout chamado para: ${user.email}`);
-
-      const result = await this.logoutUseCase.execute(user, response);
-      response.status(200).json(result);
-    } catch (error) {
-      this.logger.error(
-        `❌ Erro em logout: ${error instanceof Error ? error.message : String(error)}`,
-      );
-      throw error;
-    }
+    const result = await this.logoutUseCase.execute(user, response);
+    response.status(200).json(result);
   }
 
   @Get('me')

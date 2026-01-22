@@ -7,10 +7,6 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 
-/**
- * Filtro customizado para exceções de validação (class-validator + class-transformer)
- * Formata erros de validação em resposta estruturada
- */
 @Catch(BadRequestException)
 export class ValidationExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(ValidationExceptionFilter.name);
@@ -21,7 +17,6 @@ export class ValidationExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
     const exceptionResponse = exception.getResponse() as Record<string, any>;
 
-    // Extrair erros de validação
     const validationErrors = exceptionResponse.message || [];
     const formattedErrors = this.formatValidationErrors(validationErrors);
 
@@ -43,11 +38,6 @@ export class ValidationExceptionFilter implements ExceptionFilter {
     });
   }
 
-  /**
-   * Formatar erros de validação do class-validator
-   * De: { property: 'email', constraints: { isEmail: 'email must be an email' } }
-   * Para: { email: ['email must be an email'] }
-   */
   private formatValidationErrors(errors: any[]): Record<string, string[]> {
     const formatted: Record<string, string[]> = {};
 

@@ -19,21 +19,18 @@ export class ChangePasswordUseCase implements IChangePasswordPort {
 
   async execute(id: string, input: ChangePasswordDto): Promise<{ message: string }> {
     try {
-      // 1️⃣ Validar que as senhas conferem
       if (input.newPassword !== input.confirmPassword) {
         throw new BadRequestException('As novas senhas não conferem', {
           field: 'confirmPassword',
         });
       }
 
-      // 2️⃣ Validar que a nova senha é diferente da atual
       if (input.currentPassword === input.newPassword) {
         throw new BadRequestException('A nova senha não pode ser igual à senha atual', {
           field: 'newPassword',
         });
       }
 
-      // 3️⃣ Buscar usuário
       const user = await this.UserRepository.findById(id);
 
       if (!user) {
@@ -43,7 +40,6 @@ export class ChangePasswordUseCase implements IChangePasswordPort {
         });
       }
 
-      // 4️⃣ Verificar se a senha atual está correta usando método da entity
       if (!user.isPasswordValid(input.currentPassword)) {
         this.logger.warn(`❌ Tentativa de alterar senha com senha atual incorreta: ${id}`);
         throw new BadRequestException('Senha atual incorreta', {
@@ -53,11 +49,9 @@ export class ChangePasswordUseCase implements IChangePasswordPort {
 
       this.logger.log(`🔐 Alterando senha do usuário: ${id}`);
 
-      // 5️⃣ Definir nova senha usando método da entity
       user.setPassword(input.newPassword);
       user.updatedAt = new Date();
 
-      // 6️⃣ Salvar no repositório
       await this.UserRepository.update(id, user);
 
       this.logger.log(`✅ Senha do usuário alterada com sucesso: ${id}`);

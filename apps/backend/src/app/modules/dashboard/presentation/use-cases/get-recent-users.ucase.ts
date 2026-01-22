@@ -27,7 +27,6 @@ export class GetRecentCustomersUseCase {
     try {
       this.logger.log(`[GetRecentCustomersUseCase] Obtendo ${limit} clientes recentes para usuário: ${user.id}`);
 
-      // 1️⃣ Query de clientes recentes
       const dbQuerySpan = this.tracer.startSpan('query_recent_customers', { parent: span });
       const recentCustomers = await this.dashboardRepository.getRecentCustomers(limit);
       dbQuerySpan.end();
@@ -36,7 +35,7 @@ export class GetRecentCustomersUseCase {
         customer => new RecentCustomerResponseDto({
           id: customer.id,
           name: customer.name,
-          email: customer.email,
+          company: customer.company,
           createdAt: customer.createdAt,
         }),
       );

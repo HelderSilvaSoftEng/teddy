@@ -16,9 +16,9 @@ export enum CustomerStatusEnum {
 }
 
 @Entity('customers')
-@Index(['userId']) // Índice para melhorar performance em findByUserId
-@Index(['status']) // Índice para filtros por status
-@Index(['deletedAt']) // Índice para soft delete
+@Index(['userId'])
+@Index(['status'])
+@Index(['deletedAt']) 
 export class Customer {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

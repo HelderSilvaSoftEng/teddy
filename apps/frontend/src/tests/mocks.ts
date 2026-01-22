@@ -1,10 +1,7 @@
 import { vi } from 'vitest';
+import type { Mock } from 'vitest';
 
-/**
- * Mock helpers for frontend tests
- */
-
-export const mockFetch = (data: any, status = 200, ok = true) => {
+export const mockFetch = (data: any, status = 200, ok = true): Mock => {
   return vi.fn().mockResolvedValueOnce({
     ok,
     status,
@@ -13,7 +10,7 @@ export const mockFetch = (data: any, status = 200, ok = true) => {
   });
 };
 
-export const mockFetchError = (message: string, status = 500) => {
+export const mockFetchError = (message: string, status = 500): Mock => {
   return vi.fn().mockResolvedValueOnce({
     ok: false,
     status,
@@ -22,7 +19,7 @@ export const mockFetchError = (message: string, status = 500) => {
   });
 };
 
-export const mockFetchNetworkError = () => {
+export const mockFetchNetworkError = (): Mock => {
   return vi.fn().mockRejectedValueOnce(new Error('Network error'));
 };
 
@@ -43,15 +40,6 @@ export const mockAuthToken = (token = 'mock-jwt-token-xyz123') => {
   setLocalStorage('accessToken', token);
   return token;
 };
-
-export const mockAuthTokenExpired = () => {
-  setLocalStorage('accessToken', 'expired-token');
-  return 'expired-token';
-};
-
-/**
- * Mock response builders
- */
 
 export const mockDashboardStats = () => ({
   totalUsers: 42,

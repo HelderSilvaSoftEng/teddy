@@ -74,7 +74,6 @@ export class EmailService {
         html,
       };
 
-      // Mock mode: só loga sem enviar
       if (this.isMockMode) {
         this.logger.log(
           `📧 [MOCK] Email enviado para ${email}\n📝 Token: ${resetToken}\n🔗 Link: ${resetLink}`,
@@ -82,7 +81,6 @@ export class EmailService {
         return;
       }
 
-      // Modo real: envia via Nodemailer
       if (!this.transporter) {
         this.logger.error('❌ Email transporter não foi inicializado');
         throw new Error('Email service not configured');
@@ -96,26 +94,6 @@ export class EmailService {
     }
   }
 
-  /**
-   * Testa a conexão do email
-   */
-  async testConnection(): Promise<void> {
-    if (this.isMockMode) {
-      this.logger.log('✅ [MOCK] Conexão de email em mock mode');
-      return;
-    }
-
-    if (!this.transporter) {
-      this.logger.error('❌ Email transporter não foi inicializado');
-      return;
-    }
-
-    try {
-      await this.transporter.verify();
-      this.logger.log('✅ Conexão de email verificada com sucesso');
-    } catch (error) {
-      this.logger.error('❌ Erro ao verificar conexão de email:', error);
-    }
-  }
 }
+
 

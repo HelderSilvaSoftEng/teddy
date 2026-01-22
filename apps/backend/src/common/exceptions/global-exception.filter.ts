@@ -9,9 +9,6 @@ import {
 import { Request, Response } from 'express';
 import { BusinessException } from './business.exception';
 
-/**
- * Formato padronizado de resposta de erro
- */
 interface ErrorResponse {
   statusCode: number;
   timestamp: string;
@@ -22,11 +19,6 @@ interface ErrorResponse {
   details?: Record<string, any>;
 }
 
-/**
- * Filtro global de exceções
- * Intercepta TODAS as exceções não tratadas da aplicação
- * Converte em respostas HTTP padronizadas
- */
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name);
@@ -41,7 +33,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     let message = 'Erro interno do servidor';
     let details: Record<string, any> | undefined;
 
-    // 1️⃣ Exceção de negócio customizada
     if (exception instanceof BusinessException) {
       statusCode = exception.statusCode;
       code = exception.code;
@@ -57,7 +48,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         },
       );
     }
-    // 2️⃣ HttpException do NestJS
     else if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
       const exceptionResponse = exception.getResponse() as Record<string, any>;
@@ -74,7 +64,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         },
       );
     }
-    // 3️⃣ Erro genérico JavaScript
     else if (exception instanceof Error) {
       statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
       code = 'INTERNAL_SERVER_ERROR';
@@ -89,7 +78,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         },
       );
     }
-    // 4️⃣ Erro desconhecido
     else {
       this.logger.error(
         `❌ Unknown Exception`,
@@ -101,7 +89,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       );
     }
 
-    // Construir resposta padronizada
     const errorResponse: ErrorResponse = {
       statusCode,
       timestamp: new Date().toISOString(),
@@ -115,9 +102,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     response.status(statusCode).json(errorResponse);
   }
 
-  /**
-   * Mapear status HTTP para código de erro
-   */
   private getCodeFromStatus(status: number): string {
     const statusCodeMap: Record<number, string> = {
       400: 'BAD_REQUEST',

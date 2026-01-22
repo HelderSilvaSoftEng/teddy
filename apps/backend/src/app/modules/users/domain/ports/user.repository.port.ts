@@ -15,8 +15,6 @@ export interface IUserRepositoryPort {
   
   delete(id: string): Promise<void>; // Soft delete
   
-  findDeleted(id: string): Promise<User | null>;
-  
   incrementAccessCount(id: string): Promise<void>;
 }
 

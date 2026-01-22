@@ -52,12 +52,6 @@ export class UserRepository implements IUserRepositoryPort {
     await this.repository.update(id, { deletedAt: new Date() });
   }
 
-  async findDeleted(id: string): Promise<User | null> {
-    return this.repository.findOne({
-      where: { id },
-    });
-  }
-
   async incrementAccessCount(id: string): Promise<void> {
     await this.repository.createQueryBuilder()
       .update(User)

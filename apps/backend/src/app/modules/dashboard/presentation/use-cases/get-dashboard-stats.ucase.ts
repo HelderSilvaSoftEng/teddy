@@ -26,7 +26,6 @@ export class GetDashboardStatsUseCase {
     try {
       this.logger.log(`[GetDashboardStatsUseCase] Iniciando obtenção de estatísticas para usuário: ${user.id}`);
 
-      // 1️⃣ Query de estatísticas
       const statsSpan = this.tracer.startSpan('query_dashboard_stats', { parent: span });
       const stats = await this.dashboardRepository.getDashboardStats();
       statsSpan.end();

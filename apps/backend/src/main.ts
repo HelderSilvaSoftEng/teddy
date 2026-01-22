@@ -7,17 +7,6 @@ import { LoggerService } from './common/services/logger';
 import { initializeTracing } from './app/telemetry';
 import { GlobalExceptionFilter, ValidationExceptionFilter } from './common/exceptions';
 
-// 🔴 Global error handlers BEFORE bootstrap
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection:', reason);
-  process.exit(1);
-});
-
-process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error.message);
-  process.exit(1);
-});
-
 async function bootstrap() {
   try {
     // Initialize OpenTelemetry tracing BEFORE creating NestFactory

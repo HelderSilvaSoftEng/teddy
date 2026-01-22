@@ -30,7 +30,6 @@ export class UpdateUserUseCase {
     });
 
     try {
-      // 1️⃣ Buscar usuário
       const findSpan = this.tracer.startSpan('find_user_by_id', { parent: span });
       const user = await this.UserRepository.findById(id);
       findSpan.end();
@@ -44,10 +43,8 @@ export class UpdateUserUseCase {
 
       this.logger.log(`📝 Atualizando usuário: ${id}`);
 
-      // 2️⃣ Atualizar dados usando método da entidade
       user.update(updateUserDto);
 
-      // 3️⃣ Salvar no repositório
       const updateSpan = this.tracer.startSpan('update_user_repository', { parent: span });
       const updated = await this.UserRepository.update(id, user);
       updateSpan.end();
@@ -71,8 +68,8 @@ export class UpdateUserUseCase {
           status: '200',
           errorMessage: null,
         });
-      } catch {
-        // Silently fail to not break main operation
+      } catch (auditError: unknown) {
+        const auditErrorMsg = auditError instanceof Error ? auditError.message : String(auditError);
       } finally {
         auditSpan.end();
       }

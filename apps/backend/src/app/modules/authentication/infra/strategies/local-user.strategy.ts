@@ -6,10 +6,6 @@ import type { IUserRepositoryPort } from '../../../users/domain/ports/user.repos
 import { USER_REPOSITORY_TOKEN } from '../../../users/domain/ports/user.repository.port';
 import type { ICurrentUser } from '../../domain/types';
 
-/**
- * LocalUserStrategy - Valida email + password
- * Usado pelo LocalUserAuthGuard no endpoint /login
- */
 @Injectable()
 export class LocalUserStrategy extends PassportStrategy(Strategy, 'users') {
   private readonly logger = new Logger(LocalUserStrategy.name);
@@ -19,18 +15,13 @@ export class LocalUserStrategy extends PassportStrategy(Strategy, 'users') {
     private readonly userRepository: IUserRepositoryPort,
   ) {
     super({
-      usernameField: 'email',      // 🔷 Campo de email
-      passwordField: 'password',   // 🔷 Campo de senha
+      usernameField: 'email',
+      passwordField: 'password',
     });
   }
 
-  /**
-   * Valida credenciais do usuário
-   * Passport chama automaticamente com email e password do body
-   */
   async validate(email: string, password: string): Promise<ICurrentUser> {
     try {
-      // 1️⃣ Buscar usuário pelo email
       const user = await this.userRepository.findByEmail(email);
 
       if (!user) {
@@ -38,13 +29,11 @@ export class LocalUserStrategy extends PassportStrategy(Strategy, 'users') {
         throw new UnauthorizedException('Email ou senha inválidos');
       }
 
-      // 2️⃣ Validar se o usuário está ativo
       if (!user.isActive()) {
         this.logger.warn(`❌ Login attempt com usuário inativo: ${email}`);
         throw new UnauthorizedException('Usuário inativo');
       }
 
-      // 3️⃣ Validar senha usando método da entity
       if (!user.isPasswordValid(password)) {
         this.logger.warn(`❌ Login attempt com senha incorreta: ${email}`);
         throw new UnauthorizedException('Email ou senha inválidos');
@@ -52,11 +41,10 @@ export class LocalUserStrategy extends PassportStrategy(Strategy, 'users') {
 
       this.logger.log(`✅ Usuário autenticado: ${email}`);
 
-      // 4️⃣ Retornar usuário para o guard
       const currentUser: ICurrentUser = {
         id: user.id,
         email: user.email,
-        name: user.userName || user.email,
+        name: user.email,
       };
 
       return currentUser;

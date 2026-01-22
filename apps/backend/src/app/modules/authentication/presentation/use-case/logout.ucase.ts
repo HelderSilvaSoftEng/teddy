@@ -18,27 +18,20 @@ export class LogoutUseCase {
 
   async execute(user: ICurrentUser, response: Response, request?: Request): Promise<LogoutResponse> {
     try {
-      this.logger.log(`👋 Iniciando logout para: ${user.email}`);
-
-      // 1️⃣ Buscar cliente
       const currentUser = await this.userRepository.findById(user.id);
       if (!currentUser) {
         throw new NotFoundException('Cliente não encontrado', { entityType: 'User', id: user.id });
       }
 
-      // 2️⃣ Zerar refresh token no cliente
       currentUser.refreshTokenHash = undefined;
       currentUser.refreshTokenExpires = undefined;
       currentUser.updatedAt = new Date();
 
-      // 3️⃣ Salvar no BD
       await this.userRepository.update(currentUser.id, currentUser);
 
-      // 4️⃣ Limpar cookies
       response.clearCookie('Authentication', { path: '/' });
       response.clearCookie('RefreshToken', { path: '/' });
 
-      // 5️⃣ Registrar auditoria
       try {
         await this.logAuditUseCase.execute({
           userId: currentUser.id,

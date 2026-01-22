@@ -17,13 +17,13 @@ export class AuditQueryHandler implements IAuditQueryPort {
 
   async getRecentAuditLogs(limit: number): Promise<Array<{
     id: string;
-    context: string;
+    userEmail: string;
     action: string;
     createdAt: Date;
   }>> {
     const logs = await this.auditLogRepository
       .find({
-        select: ['id', 'context', 'action', 'createdAt'],
+        select: ['id', 'userEmail', 'action', 'createdAt'],
         order: { createdAt: 'DESC' },
         take: limit,
       });
