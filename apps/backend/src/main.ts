@@ -7,21 +7,48 @@ import { LoggerService } from './common/services/logger';
 import { initializeTracing } from './app/telemetry';
 import { GlobalExceptionFilter, ValidationExceptionFilter } from './common/exceptions';
 
+// 🔴 Global error handlers BEFORE bootstrap
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ [MAIN] Unhandled Rejection at promise:', promise);
+  console.error('Reason:', reason);
+  if (reason instanceof Error) {
+    console.error('Stack:', reason.stack);
+  }
+  process.exit(1);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('❌ [MAIN] Uncaught Exception:', error.message);
+  console.error('Stack:', error.stack);
+  process.exit(1);
+});
+
 async function bootstrap() {
   try {
     // 🔍 Initialize OpenTelemetry tracing BEFORE creating NestFactory
     initializeTracing();
 
     console.log('🔍 [MAIN] Iniciando NestFactory.create...');
-    const app = await NestFactory.create(AppModule, {
+    console.log('⏰ [MAIN] Starting with timeout protection...');
+    
+    const createAppPromise = NestFactory.create(AppModule, {
       logger: false, // ✅ Desabilitar logger padrão do NestJS
     });
+    
+    // Set timeout for app creation (30 seconds)
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('NestFactory.create timeout after 30s')), 30000)
+    );
+    
+    const app = await Promise.race([createAppPromise, timeoutPromise]);
+    
     console.log('✅ [MAIN] NestFactory.create completo');
 
     // ✅ Usar LoggerService como logger global
     const loggerService = new LoggerService('NestJS');
     app.useLogger(loggerService);
     
+    console.log('🔍 [MAIN] Configurando CORS...');
     app.enableCors({
       origin: process.env.FRONTEND_URL || 'http://localhost:4200',
       credentials: true,  // ✅ Permite cookies cross-origin
@@ -34,6 +61,7 @@ async function bootstrap() {
     const globalPrefix = 'api';
     app.setGlobalPrefix(globalPrefix);
     
+    console.log('🔍 [MAIN] Aplicando pipes e filtros...');
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
@@ -48,6 +76,7 @@ async function bootstrap() {
       new GlobalExceptionFilter(),
     );
 
+    console.log('🔍 [MAIN] Configurando Swagger...');
     // Swagger documentation
     const config = new DocumentBuilder()
       .setTitle('Desafio API')
