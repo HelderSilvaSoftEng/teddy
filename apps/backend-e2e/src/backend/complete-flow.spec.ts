@@ -10,7 +10,7 @@ describe('E2E: Complete User Flow', () => {
         password: 'SecurePass123!',
       };
 
-      const response = await axios.post('/v1/users', userData);
+      const response = await axios.post('/api/v1/users', userData);
 
       expect(response.status).toBe(201);
       expect(response.data).toHaveProperty('id');
@@ -24,10 +24,10 @@ describe('E2E: Complete User Flow', () => {
         password: 'SecurePass123!',
       };
 
-      await axios.post('/v1/users', userData);
+      await axios.post('/api/v1/users', userData);
 
       try {
-        await axios.post('/v1/users', userData);
+        await axios.post('/api/v1/users', userData);
         fail('Should have thrown 409 Conflict');
       } catch (error: any) {
         expect(error.response?.status).toBe(409);
@@ -40,9 +40,9 @@ describe('E2E: Complete User Flow', () => {
         password: 'SecurePass123!',
       };
 
-      await axios.post('/v1/users', userData);
+      await axios.post('/api/v1/users', userData);
 
-      const loginResponse = await axios.post('/auth/login', {
+      const loginResponse = await axios.post('/api/auth/login', {
         email: userData.email,
         password: userData.password,
       });
@@ -58,10 +58,10 @@ describe('E2E: Complete User Flow', () => {
         password: 'SecurePass123!',
       };
 
-      await axios.post('/v1/users', userData);
+      await axios.post('/api/v1/users', userData);
 
       try {
-        await axios.post('/auth/login', {
+        await axios.post('/api/auth/login', {
           email: userData.email,
           password: 'WrongPassword123!',
         });
@@ -77,14 +77,14 @@ describe('E2E: Complete User Flow', () => {
         password: 'SecurePass123!',
       };
 
-      await axios.post('/v1/users', userData);
-      const loginResponse = await axios.post('/auth/login', {
+      await axios.post('/api/v1/users', userData);
+      const loginResponse = await axios.post('/api/auth/login', {
         email: userData.email,
         password: userData.password,
       });
 
       const oldRefreshToken = loginResponse.data.refreshToken;
-      const refreshResponse = await axios.post('/auth/refresh', {
+      const refreshResponse = await axios.post('/api/auth/refresh', {
         refreshToken: oldRefreshToken,
       });
 
@@ -104,10 +104,10 @@ describe('E2E: Complete User Flow', () => {
         password: 'SecurePass123!',
       };
 
-      const createResponse = await axios.post('/v1/users', userData);
+      const createResponse = await axios.post('/api/v1/users', userData);
       testUserId = createResponse.data.id;
 
-      const loginResponse = await axios.post('/auth/login', {
+      const loginResponse = await axios.post('/api/auth/login', {
         email: userData.email,
         password: userData.password,
       });
@@ -121,7 +121,7 @@ describe('E2E: Complete User Flow', () => {
         salary: 5000.50,
       };
 
-      const response = await axios.post('/v1/customers', customerData, {
+      const response = await axios.post('/api/v1/customers', customerData, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
@@ -133,7 +133,7 @@ describe('E2E: Complete User Flow', () => {
     });
 
     it('should get all customers', async () => {
-      const response = await axios.get('/v1/customers', {
+      const response = await axios.get('/api/v1/customers', {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
@@ -142,7 +142,7 @@ describe('E2E: Complete User Flow', () => {
     });
 
     it('should get customer by id', async () => {
-      const response = await axios.get(`/v1/customers/${customerId}`, {
+      const response = await axios.get(`/api/v1/customers/${customerId}`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
@@ -152,7 +152,7 @@ describe('E2E: Complete User Flow', () => {
 
     it('should fail to get non-existent customer', async () => {
       try {
-        await axios.get('/v1/customers/non-existent-id', {
+        await axios.get('/api/v1/customers/non-existent-id', {
           headers: { Authorization: `Bearer ${authToken}` },
         });
         fail('Should have thrown 404');
@@ -171,9 +171,9 @@ describe('E2E: Complete User Flow', () => {
         password: 'SecurePass123!',
       };
 
-      await axios.post('/v1/users', userData);
+      await axios.post('/api/v1/users', userData);
 
-      const loginResponse = await axios.post('/auth/login', {
+      const loginResponse = await axios.post('/api/auth/login', {
         email: userData.email,
         password: userData.password,
       });
@@ -182,7 +182,7 @@ describe('E2E: Complete User Flow', () => {
     });
 
     it('should get dashboard stats', async () => {
-      const response = await axios.get('/dashboard/stats', {
+      const response = await axios.get('/api/dashboard/stats', {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
@@ -193,7 +193,7 @@ describe('E2E: Complete User Flow', () => {
     });
 
     it('should get customer trend by day', async () => {
-      const response = await axios.get('/dashboard/customer-trend/day', {
+      const response = await axios.get('/api/dashboard/customer-trend/day', {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
@@ -205,7 +205,7 @@ describe('E2E: Complete User Flow', () => {
   describe('Authentication & Authorization', () => {
     it('should fail without authentication token', async () => {
       try {
-        await axios.get('/v1/customers');
+        await axios.get('/api/v1/customers');
         fail('Should have thrown 401');
       } catch (error: any) {
         expect(error.response?.status).toBe(401);
@@ -214,7 +214,7 @@ describe('E2E: Complete User Flow', () => {
 
     it('should fail with invalid token', async () => {
       try {
-        await axios.get('/v1/customers', {
+        await axios.get('/api/v1/customers', {
           headers: { Authorization: 'Bearer invalid-token' },
         });
         fail('Should have thrown 401');
@@ -227,7 +227,7 @@ describe('E2E: Complete User Flow', () => {
   describe('Validation & Error Handling', () => {
     it('should fail with invalid email format', async () => {
       try {
-        await axios.post('/v1/users', {
+        await axios.post('/api/v1/users', {
           email: 'invalid-email',
           password: 'SecurePass123!',
         });
@@ -239,7 +239,7 @@ describe('E2E: Complete User Flow', () => {
 
     it('should fail with password too short', async () => {
       try {
-        await axios.post('/v1/users', {
+        await axios.post('/api/v1/users', {
           email: `short-pwd-${Date.now()}@example.com`,
           password: 'short',
         });

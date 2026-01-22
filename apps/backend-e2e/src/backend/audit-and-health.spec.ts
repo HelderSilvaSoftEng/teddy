@@ -10,9 +10,9 @@ describe('E2E: Audit Logging', () => {
       password: 'SecurePass123!',
     };
 
-    const createResponse = await axios.post('/v1/users', userData);
+    const createResponse = await axios.post('/api/v1/users', userData);
 
-    const loginResponse = await axios.post('/auth/login', {
+    const loginResponse = await axios.post('/api/auth/login', {
       email: userData.email,
       password: userData.password,
     });
@@ -27,7 +27,7 @@ describe('E2E: Audit Logging', () => {
         password: 'SecurePass123!',
       };
 
-      const response = await axios.post('/v1/users', userData);
+      const response = await axios.post('/api/v1/users', userData);
 
       expect(response.status).toBe(201);
       expect(response.data).toHaveProperty('id');
@@ -41,7 +41,7 @@ describe('E2E: Audit Logging', () => {
         salary: 7500.00,
       };
 
-      const response = await axios.post('/v1/customers', customerData, {
+      const response = await axios.post('/api/v1/customers', customerData, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
@@ -54,13 +54,13 @@ describe('E2E: Audit Logging', () => {
     it('should track all user actions in audit logs', async () => {
       // Create multiple customers to generate audit logs
       const customer1 = await axios.post(
-        '/v1/customers',
+        '/api/v1/customers',
         { name: 'Customer 1', salary: 5000 },
         { headers: { Authorization: `Bearer ${authToken}` } },
       );
 
       const customer2 = await axios.post(
-        '/v1/customers',
+        '/api/v1/customers',
         { name: 'Customer 2', salary: 6000 },
         { headers: { Authorization: `Bearer ${authToken}` } },
       );
@@ -69,7 +69,7 @@ describe('E2E: Audit Logging', () => {
       expect(customer2.status).toBe(201);
 
       // Stats should show increased audit log count
-      const statsResponse = await axios.get('/dashboard/stats', {
+      const statsResponse = await axios.get('/api/dashboard/stats', {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
@@ -80,7 +80,7 @@ describe('E2E: Audit Logging', () => {
   describe('System Health', () => {
     it('should have health check endpoint', async () => {
       try {
-        const response = await axios.get('/health');
+        const response = await axios.get('/api/health');
         expect(response.status).toBe(200);
       } catch (error: unknown) {
         const axiosError = error as any;
@@ -95,7 +95,7 @@ describe('E2E: Audit Logging', () => {
       for (let i = 0; i < 5; i++) {
         promises.push(
           axios.post(
-            '/v1/customers',
+            '/api/v1/customers',
             { name: `Concurrent Customer ${i}`, salary: 5000 + i * 100 },
             { headers: { Authorization: `Bearer ${authToken}` } },
           ),
