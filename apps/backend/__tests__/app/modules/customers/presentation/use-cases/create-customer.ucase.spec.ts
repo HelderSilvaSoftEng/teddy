@@ -35,8 +35,8 @@ describe('CreateCustomerUseCase', () => {
 
   describe('execute', () => {
     const createCustomerDto: CreateCustomerDto = {
-      email: 'customer@example.com',
-      company: 'Acme Corp',
+      name: 'João Silva',
+      salary: 5000.50,
     };
 
     it('should create a customer successfully', async () => {
@@ -44,8 +44,8 @@ describe('CreateCustomerUseCase', () => {
       const createdCustomer = {
         id: 'customer-123',
         userId,
-        email: createCustomerDto.email,
-        company: createCustomerDto.company,
+        name: createCustomerDto.name,
+        salary: createCustomerDto.salary,
         createdAt: new Date(),
       };
 
@@ -66,8 +66,8 @@ describe('CreateCustomerUseCase', () => {
       const createdCustomer = {
         id: 'customer-123',
         userId,
-        email: createCustomerDto.email,
-        company: createCustomerDto.company,
+        name: createCustomerDto.name,
+        salary: createCustomerDto.salary,
       };
 
       mockCustomerRepository.create.mockResolvedValue(createdCustomer);

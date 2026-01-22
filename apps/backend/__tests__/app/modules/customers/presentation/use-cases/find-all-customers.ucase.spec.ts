@@ -31,14 +31,14 @@ describe('FindAllCustomersUseCase', () => {
         {
           id: 'customer-1',
           userId: 'user-123',
-          email: 'customer1@example.com',
-          company: 'Acme Corp',
+          name: 'João Silva',
+          salary: 5000,
         },
         {
           id: 'customer-2',
           userId: 'user-123',
-          email: 'customer2@example.com',
-          company: 'Tech Corp',
+          name: 'Maria Santos',
+          salary: 6000,
         },
       ];
 

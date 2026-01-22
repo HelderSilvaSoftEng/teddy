@@ -30,7 +30,6 @@ describe('GetCustomerTrendByDayUseCase', () => {
     const currentUser: ICurrentUser = {
       id: 'user-123',
       email: 'user@example.com',
-      role: 'admin',
     };
 
     it('should get customer trend by day successfully', async () => {

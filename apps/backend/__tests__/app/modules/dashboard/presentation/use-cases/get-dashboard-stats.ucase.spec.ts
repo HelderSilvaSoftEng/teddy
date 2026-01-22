@@ -30,7 +30,6 @@ describe('GetDashboardStatsUseCase', () => {
     const currentUser: ICurrentUser = {
       id: 'user-123',
       email: 'user@example.com',
-      role: 'admin',
     };
 
     it('should get dashboard stats successfully', async () => {

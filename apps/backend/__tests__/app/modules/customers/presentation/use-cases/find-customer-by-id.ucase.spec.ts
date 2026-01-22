@@ -32,8 +32,8 @@ describe('FindCustomerByIdUseCase', () => {
       const customer = {
         id: customerId,
         userId: 'user-123',
-        email: 'customer@example.com',
-        company: 'Acme Corp',
+        name: 'João Silva',
+        salary: 5000,
       };
 
       mockCustomerRepository.findById.mockResolvedValue(customer);
