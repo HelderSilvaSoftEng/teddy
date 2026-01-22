@@ -92,7 +92,31 @@ Para detalhes profundos sobre escalabilidade e design patterns, consulte [ARCHIT
 
 ---
 
-## 🔐 Autenticação
+## � API Documentation (Swagger)
+
+Acesse a documentação **interativa** de todos os endpoints:
+
+**[🔗 Swagger UI](http://localhost:3000/docs)** → <http://localhost:3000/docs>
+
+### Recursos
+
+- ✅ Todos os endpoints documentados
+- 🎯 Teste endpoints direto no navegador
+- 📋 Schemas de request/response
+- 🔐 Autenticação JWT integrada
+- 📊 Status codes e exemplos reais
+
+### Como usar
+
+1. Abra [http://localhost:3000/docs](http://localhost:3000/docs)
+2. Clique em **"Authorize"** (canto superior direito)
+3. Coloque um token JWT válido
+4. Clique em qualquer endpoint e **"Try it out"**
+5. Veja a resposta em tempo real
+
+---
+
+## �🔐 Autenticação
 
 ### Login
 

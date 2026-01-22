@@ -40,43 +40,33 @@ dashboard/
 
 ---
 
-## Estratégia de Escalabilidade
+## Análise de Escalabilidade Real
 
-### 1. Escalabilidade Horizontal (Múltiplas Instâncias)
+### Por Que Escala Bem Hoje
 
-**Pronto Para:**
+O backend é **stateless**. Cada requisição traz seu JWT, faz o trabalho. Não salva sessão em memória, não depende de estado anterior. Isso significa que você pode colocar 5, 10 ou 100 instâncias atrás de um load balancer (Nginx, AWS ALB) e estará funcionando. Requisição chega, o LB escolhe uma instância, trabalha, devolve e finaliza.
 
-- ✅ Load Balancer (Nginx, HAProxy, AWS ALB)
-- ✅ Kubernetes deployment (stateless)
-- ✅ Docker containers
+O banco é o ponto central. Todas instâncias conversam com o mesmo PostgreSQL. Vocês já têm índices onde importa (email, customer_id, created_at) e soft deletes feitos certo (`deletedAt IS NULL` é indexed). Queries simples como COUNT(*).
 
-**Por que funciona:**
+### Gargalos Realistas
 
-- API é stateless (tokens JWT, sem session storage)
-- Cada instância se conecta ao mesmo BD
-- Cookies/tokens válidos em qualquer instância
+**Audit logs crescendo demais:** Você loga tudo funcionará bem, mas logo essa tabela tem milhões de registros. Queries em audit ficam lentas. Solução futura: tabelas particionadas por data ou move de histórico pra data warehouse. Por agora, não é problema.
 
-### 2. Escalabilidade Vertical (Mais Poder)
+**Pool de conexão PostgreSQL:** Se tiver 10 instâncias do backend com 20 conexões cada = 200 conexões no pool. PostgreSQL tem limite. Solução: PgBouncer (intermediário que faz pooling). Quando bater nesse limite, é rápido de resolver.
 
-**Otimizações Já Implementadas:**
+**Volume em real-time:** Se crescer muito, queries em dashboard ficam lentas. Redis resolveria isso com cache de 5 minutos. Economia enorme de I/O.
 
-### 1. Database Indexing
+### O Que Já Tá Fazendo Certo
 
-### 2. Query Optimization
+Schema é clean. Sem denormalizações desnecessárias que depois viram pesadelo. Usuários, clientes, audit logs bem separados. Índices onde precisam. Soft deletes implementado do jeito certo. Logs auditáveis.
 
+### Se Precisar Escalar Mais
 
-### 3. Caching Strategy
+**Horizontal (mais máquinas):** Adiciona instâncias backend, pronto.
 
-**Ready para Redis** (estrutura suporta):
+**Vertical (mais poder):** Redis pra cache, read replicas do Postgres, query optimization.
 
-### 4. Database Sharding (Para Futuro)
-
-Quando BD ficar grande, distribuir por usuario_id:
-
-### 5. API Rate Limiting
-
-**Implementado via Guard** (pronto para ativar):
-
+**Sharding (dividir base):** Se PostgreSQL ficar saturado, distribui clientes por owner_id ou range. Como vocês tão com domain/ports/infra bem separado, trocar pra ShardingRepository é coisa de alguns dias.
 
 ---
 
@@ -90,56 +80,47 @@ docker-compose up -d
 npm run dev  # Backend + Frontend
 ```
 
-### Staging/Production (Escalado)
+### Production - Escalado
 
-**Serverless (AWS Lambda + RDS)**
+**Opção 1: Kubernetes**
 
-- Handler: NestJS configurado como Lambda
-- BD: AWS RDS (managed PostgreSQL)
-- Storage: S3
-- CDN: CloudFront
+- Deploy múltiplas instâncias do backend
+- LoadBalancer na frente
+- PostgreSQL gerenciado (AWS RDS, DigitalOcean Managed)
+- Prometheus + Grafana pra monitoring
+
+**Opção 2: Serverless (AWS Lambda)**
+
+- NestJS configurado como Lambda handler
+- AWS RDS pro database
+- S3 pra storage
+- CloudFront pra CDN
 
 ---
 
 ## Monitoramento & Observabilidade
 
-### Métricas Coletadas
+Já tá configurado com OpenTelemetry e Jaeger. Key metrics que importam:
 
-**Application Metrics:**
+**Application:** HTTP latency, database queries, active connections, error rates
+**Business:** Users created/day, customers created/day, audit log volume
+**Infrastructure:** CPU, memory, disk I/O, network I/O
 
-- HTTP request latency (P50, P95, P99)
-- Database query duration
-- Active connections
-- Error rates
-
-**Business Metrics:**
-
-- Users created per day
-- Customers created per day
-- Audit log entries per action
-
-**Infrastructure Metrics:**
-
-- CPU usage
-- Memory usage
-- Disk I/O
-- Network I/O
-
-
+Se tiver mais volume, ativa Prometheus + Grafana (já tem no docker-compose) pra alertas.
 
 ---
 
 ## Security by Design
 
-### Implementações de Segurança
+Já implementado:
 
-✅ **Authentication**: JWT com refresh tokens
-✅ **Password**: Bcrypt com salt
-✅ **Database**: TypeORM prepared statements (SQL injection prevention)
-✅ **CORS**: Configurado por origin
-✅ **Validation**: Pipes de validação em todos DTOs
-✅ **Error Handling**: Não expõe stack traces
-✅ **Audit**: Todos mutações logadas
-✅ **HTTPS Ready**: Código agnóstico de protocolo
+✅ **Authentication:** JWT com refresh tokens  
+✅ **Password:** Bcrypt com salt  
+✅ **Database:** Prepared statements (TypeORM) contra SQL injection  
+✅ **CORS:** Configurado por origin  
+✅ **Validation:** Pipes em todos DTOs  
+✅ **Error Handling:** Não expõe stack traces  
+✅ **Audit:** Tudo logado  
+✅ **HTTPS Ready:** Código agnóstico de protocolo
 
 ---
