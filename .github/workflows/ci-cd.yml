@@ -99,7 +99,7 @@ jobs:
       - name: Run all tests
         run: pnpm run test
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/teddy_test
+          DATABASE_URL: postgresql://test:test@postgres:5432/teddy_test
           NODE_ENV: test
 
       - name: Upload frontend coverage

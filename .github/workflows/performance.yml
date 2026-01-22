@@ -53,7 +53,7 @@ jobs:
       - name: Start backend server
         run: pnpm run backend:prod &
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/teddy_test
+          DATABASE_URL: postgresql://test:test@postgres:5432/teddy_test
           NODE_ENV: production
         timeout-minutes: 2
 
