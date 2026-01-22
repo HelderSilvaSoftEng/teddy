@@ -31,16 +31,20 @@ async function bootstrap() {
     console.log('🔍 [MAIN] Iniciando NestFactory.create...');
     console.log('⏰ [MAIN] Starting with timeout protection...');
     
-    const createAppPromise = NestFactory.create(AppModule, {
-      logger: false, // ✅ Desabilitar logger padrão do NestJS
-    });
-    
-    // Set timeout for app creation (30 seconds)
-    const timeoutPromise: Promise<INestApplication> = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('NestFactory.create timeout after 30s')), 30000)
-    );
-    
-    const app: INestApplication = await Promise.race([createAppPromise, timeoutPromise]);
+    let app: INestApplication;
+    try {
+      app = await NestFactory.create(AppModule, {
+        logger: false, // ✅ Desabilitar logger padrão do NestJS
+      });
+    } catch (createError) {
+      console.error('❌ [MAIN] CRITICAL ERROR creating NestApp:');
+      console.error('Error Type:', createError?.constructor?.name);
+      console.error('Error Message:', createError instanceof Error ? createError.message : String(createError));
+      if (createError instanceof Error) {
+        console.error('Error Stack:', createError.stack);
+      }
+      throw createError;
+    }
     
     console.log('✅ [MAIN] NestFactory.create completo');
 
