@@ -2,6 +2,7 @@
   "name": "@teddy-challenger/source",
   "version": "0.0.0",
   "license": "MIT",
+  "packageManager": "pnpm@10.28.0",
   "scripts": {
     "backend:dev": "npx nx serve backend --configuration=development",
     "backend:prod": "npx nx build backend && node dist/apps/backend/main.js",
