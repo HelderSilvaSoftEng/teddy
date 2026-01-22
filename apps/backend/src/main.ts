@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, INestApplication } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
@@ -36,11 +36,11 @@ async function bootstrap() {
     });
     
     // Set timeout for app creation (30 seconds)
-    const timeoutPromise = new Promise((_, reject) =>
+    const timeoutPromise: Promise<INestApplication> = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('NestFactory.create timeout after 30s')), 30000)
     );
     
-    const app = await Promise.race([createAppPromise, timeoutPromise]);
+    const app: INestApplication = await Promise.race([createAppPromise, timeoutPromise]);
     
     console.log('✅ [MAIN] NestFactory.create completo');
 
