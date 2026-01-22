@@ -46,6 +46,7 @@ jobs:
           JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}
           REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}
           REFRESH_TOKEN_TTL=${{ secrets.REFRESH_TOKEN_TTL }}
+          OTEL_ENABLED=false
           EOF
 
       - name: Install pnpm
@@ -82,6 +83,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/teddy_test
           NODE_ENV: test
+          OTEL_ENABLED: 'false'
 
       - name: Build backend
         run: npm run backend:build

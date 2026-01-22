@@ -6,6 +6,13 @@ import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 
 export function initializeTracing(): void {
   try {
+    const isEnabled = process.env.OTEL_ENABLED !== 'false';
+    
+    if (!isEnabled) {
+      console.log('⏭️  [TELEMETRY] OpenTelemetry disabled (OTEL_ENABLED=false)');
+      return;
+    }
+    
     const endpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/traces';
     console.log(`🔍 [TELEMETRY] Inicializando OpenTelemetry com endpoint: ${endpoint}`);
 
