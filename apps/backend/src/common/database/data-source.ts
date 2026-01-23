@@ -2,11 +2,11 @@
 
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
-import dotenv from 'dotenv';
 import path from 'path';
 import { User } from '../../app/modules/users/domain/entities/user.entity';
 
-dotenv.config();
+// Note: dotenv is already loaded in /src/dotenv.ts, imported in main.ts
+// No need to call dotenv.config() again here
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -22,5 +22,9 @@ export const AppDataSource = new DataSource({
   subscribers: [],
   synchronize: false,
   logging: !isProduction,
-  ssl: isProduction ? { rejectUnauthorized: false } : false,
+  ssl: false,
+  extra: {
+    // Force disable SSL mode in connection string
+    sslmode: 'disable',
+  },
 });

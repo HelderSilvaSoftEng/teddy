@@ -1,11 +1,13 @@
+version: '3.9'
+
 services:
   postgres:
     image: postgres:16-alpine
     container_name: teddy_postgres
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: teddy_db
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-teddy_db}
     ports:
       - "5432:5432"
     volumes:
@@ -15,6 +17,37 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - teddy-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: teddy_backend
+    restart: "no"
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - teddy-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    container_name: teddy_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - teddy-network
 
   prometheus:
     image: prom/prometheus:latest
@@ -30,13 +63,15 @@ services:
       - "--web.console.libraries=/usr/share/prometheus/console_libraries"
       - "--web.console.templates=/usr/share/prometheus/consoles"
     depends_on:
-      - postgres
+      - backend
+    networks:
+      - teddy-network
 
   grafana:
     image: grafana/grafana:latest
     container_name: teddy_grafana
     ports:
-      - "3001:3000"
+      - "3002:3000"
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_SECURITY_ADMIN_USER: admin
@@ -46,29 +81,32 @@ services:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
     depends_on:
       - prometheus
+    networks:
+      - teddy-network
 
   jaeger:
     image: jaegertracing/all-in-one:latest
     container_name: teddy_jaeger
     ports:
-      # OTLP gRPC receiver
       - "4317:4317"
-      # OTLP HTTP receiver
       - "4318:4318"
-      # Jaeger Thrift HTTP collector
       - "14268:14268"
-      # Jaeger UI
       - "16686:16686"
-      # Compact thrift
       - "6831:6831/udp"
     environment:
       - COLLECTOR_OTLP_ENABLED=true
       - COLLECTOR_JAEGER_GRPC_PORT=14250
     volumes:
       - jaeger_data:/badger
+    networks:
+      - teddy-network
 
 volumes:
   postgres_data:
   prometheus_data:
   grafana_data:
   jaeger_data:
+
+networks:
+  teddy-network:
+    driver: bridge
