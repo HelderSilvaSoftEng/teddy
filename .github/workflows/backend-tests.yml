@@ -2,12 +2,12 @@ name: Backend Tests & Coverage
 
 on:
   push:
-    branches: [ main, feat/dashboard ]
+    branches: [ main, feat/docker-devops ]
     paths:
       - 'apps/backend/**'
       - '.github/workflows/backend-tests.yml'
   pull_request:
-    branches: [ main, feat/dashboard ]
+    branches: [ main, feat/docker-devops ]
     paths:
       - 'apps/backend/**'
 

@@ -2,12 +2,12 @@ name: Frontend Coverage Report
 
 on:
   push:
-    branches: [ main, feat/dashboard ]
+    branches: [ main, feat/docker-devops ]
     paths:
       - 'apps/frontend/**'
       - '.github/workflows/frontend-coverage.yml'
   pull_request:
-    branches: [ main, feat/dashboard ]
+    branches: [ main, feat/docker-devops ]
     paths:
       - 'apps/frontend/**'
 
