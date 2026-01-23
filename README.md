@@ -56,6 +56,24 @@ docker-compose logs -f         # Ver logs em tempo real
 
 ---
 
+## 🔐 Acesso Inicial
+
+Um usuário **admin padrão** é criado automaticamente na primeira inicialização:
+
+| Campo | Valor |
+|-------|-------|
+| **Email** | `admin@teddy.com` |
+| **Senha** | `admin123` |
+
+**Como acessar:**
+
+1. Frontend: <http://localhost:5173>
+2. Faça login com as credenciais acima
+3. Ou teste diretamente via Swagger: <http://localhost:3000/docs>
+
+
+---
+
 ## 📊 Dashboard Feature
 
 Novo dashboard com estatísticas em tempo real, usuários recentes e observabilidade completa via OpenTelemetry.
