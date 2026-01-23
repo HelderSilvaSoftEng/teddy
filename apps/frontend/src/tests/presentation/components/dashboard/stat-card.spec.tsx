@@ -28,7 +28,6 @@ describe('StatCard Component', () => {
       />
     );
 
-    // Brazilian locale uses '.' as thousand separator
     expect(screen.getByText(/1\.250/)).toBeInTheDocument();
   });
 

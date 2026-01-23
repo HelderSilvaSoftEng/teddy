@@ -29,11 +29,9 @@ export function LoginPage() {
 
   const onSubmit = async (data: LoginFormInputs) => {
     try {
-      // 1. Fazer login
       const useCase = new LoginUseCase(authRepository);
       await useCase.execute(data);
 
-      // 2. Carregar dados do usuário após login
       const userData = await authRepository.getCurrentUser();
       setUser(userData);
 
@@ -42,7 +40,6 @@ export function LoginPage() {
       const message = error instanceof Error ? error.message : 'Erro ao fazer login';
       setError(message);
       
-      // Se for erro de credenciais, destaca o email
       if (message.includes('Email') || message.includes('senha')) {
         setFieldError('email', { message });
       }
