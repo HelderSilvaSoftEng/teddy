@@ -2,7 +2,6 @@ import { afterEach, vi, beforeAll, afterAll } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
-// Mock localStorage
 const localStorageMock = (() => {
   let store: Record<string, string> = {};
 
@@ -24,10 +23,8 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
 
-// Export localStorage for use in tests
 export const localStorage = (window as any).localStorage || localStorageMock;
 
-// Cleanup after each test
 afterEach(() => {
   cleanup();
   localStorage?.clear?.();
@@ -35,10 +32,8 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-// Mock fetch global
 global.fetch = vi.fn();
 
-// Suppress console errors during tests (optional)
 const originalError = console.error;
 beforeAll(() => {
   console.error = vi.fn((...args) => {

@@ -133,7 +133,7 @@ export class LoggerService extends ConsoleLogger {
   }
 
   /**
-   * 📊 Log com métrica de performance
+   * Log com métrica de performance
    */
   performance(message: string, durationMs: number, context?: Record<string, any>): void {
     const logLevel = durationMs > 1000 ? 'warn' : 'info';

@@ -1,11 +1,8 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import * as dotenv from 'dotenv';
 import { Logger } from '@nestjs/common';
 import { User } from '../../app/modules/users/domain/entities';
 import { Customer } from '../../app/modules/customers/domain/entities';
 import { AuditLog } from '../modules/audit/domain/entities';
-
-dotenv.config();
 
 const logger = new Logger('TypeOrmConfig');
 
@@ -18,14 +15,14 @@ export const typeormConfig: TypeOrmModuleOptions = {
   database: process.env.DB_NAME || 'teddy_db',
   entities: [User, Customer, AuditLog],
   migrations: [],
-  synchronize: true,
+  synchronize: process.env.NODE_ENV !== 'production',
   migrationsRun: false,
   logging: process.env.DB_LOGGING === 'true' || process.env.TYPEORM_LOGGING === 'true',
   logger: 'advanced-console',
-  ssl:
-    process.env.NODE_ENV === 'production'
-      ? { rejectUnauthorized: false }
-      : false,
+  ssl: process.env.NODE_ENV === 'production' ? true : false,
+  extra: {
+    sslmode: 'disable',
+  },
 };
 
 logger.debug(`Database Config: ${JSON.stringify({

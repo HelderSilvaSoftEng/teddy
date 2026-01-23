@@ -6,11 +6,13 @@ import { Header, Sidebar } from '../common';
 import { CustomerCard } from '../customer-card';
 import { UpdateCustomerModal } from '../modals/UpdateCustomerModal';
 import { ConfirmDeleteModal } from '../modals/confirm-delete-modal';
+import { useToast } from '../../../presentation';
 import './customers-page.css';
 
 const ITEMS_PER_PAGE = 16;
 
 export function SelectedCustomersPage({ onOpenUserModal }: { onOpenUserModal?: () => void }) {
+  const { addToast } = useToast();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -86,10 +88,13 @@ export function SelectedCustomersPage({ onOpenUserModal }: { onOpenUserModal?: (
         setCustomers((prev) =>
           prev.filter((c) => c.id !== customer.id)
         );
+        setTotal((prev) => Math.max(0, prev - 1));
+        addToast(`Cliente "${customer.name}" removido dos selecionados!`, 'info');
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao desselecionar cliente';
       setError(message);
+      addToast(message, 'error');
     }
   };
 
@@ -99,6 +104,7 @@ export function SelectedCustomersPage({ onOpenUserModal }: { onOpenUserModal?: (
     setIsClearing(true);
     try {
       const useCase = new UpdateCustomerUseCase(customerRepository);
+      const count = customers.length;
       
       // Atualiza todos os clientes SELECTED para ACTIVE em paralelo
       const updatePromises = customers.map((customer) =>
@@ -112,9 +118,11 @@ export function SelectedCustomersPage({ onOpenUserModal }: { onOpenUserModal?: (
       setTotal(0);
       setCurrentPage(1);
       setError(null);
+      addToast(`${count} cliente(s) removido(s) dos selecionados!`, 'info');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao limpar clientes selecionados';
       setError(message);
+      addToast(message, 'error');
     } finally {
       setIsClearing(false);
     }

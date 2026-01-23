@@ -2,9 +2,9 @@ name: Full CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, feat/dashboard ]
+    branches: [ main, feat/docker-devops ]
   pull_request:
-    branches: [ main, feat/dashboard ]
+    branches: [ main, feat/docker-devops ]
 
 jobs:
   lint:

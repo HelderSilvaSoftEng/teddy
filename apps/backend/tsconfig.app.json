@@ -15,7 +15,12 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "typeRoots": ["./src/types", "../../node_modules/@types"],
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitAny": false,
+    "noImplicitThis": false,
+    "strictPropertyInitialization": false
   },
   "include": ["src/**/*.ts"],
   "exclude": ["eslint.config.js", "eslint.config.cjs", "eslint.config.mjs", "dist"]

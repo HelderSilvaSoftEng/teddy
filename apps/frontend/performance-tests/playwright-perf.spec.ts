@@ -11,10 +11,8 @@ test.describe('Frontend Performance Tests', () => {
   });
 
   test('Dashboard should load within 2 seconds (with auth)', async ({ page }) => {
-    // Mock login
     await page.goto('http://localhost:5173/login');
 
-    // Simulate login (adjust selectors as needed)
     await page.fill('input[type="email"]', 'test@example.com');
     await page.fill('input[type="password"]', 'password123');
 
@@ -41,7 +39,6 @@ test.describe('Frontend Performance Tests', () => {
   test('API calls should complete within 500ms', async ({ page }) => {
     await page.goto('http://localhost:5173/dashboard');
 
-    // Monitor network requests
     let slowRequests = 0;
 
     page.on('response', (response) => {
@@ -61,7 +58,6 @@ test.describe('Frontend Performance Tests', () => {
   test('Component rendering performance', async ({ page }) => {
     await page.goto('http://localhost:5173/dashboard');
 
-    // Measure time to interactive
     const tti = await page.evaluate(() => {
       return new Promise((resolve) => {
         if ('PerformanceObserver' in window) {

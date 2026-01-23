@@ -3,22 +3,16 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 
-// Controllers
 import { AuthController } from './adapters/controllers/auth.controller';
 
-// Use Cases
 import { LoginUseCase, RefreshTokenUseCase, LogoutUseCase, RecoveryPasswordUseCase, ResetPasswordUseCase } from './presentation/use-case';
 
-// Strategies & Guards
 import { LocalUserStrategy, JwtStrategy } from './infra/strategies';
 
-// Users module (para UserRepository)
 import { UsersModule } from '../users/users.module';
 
-// Email module
 import { EmailModule } from '../../../common/services/email';
 
-// Audit module
 import { AuditModule } from '../../../common/modules/audit';
 
 @Module({

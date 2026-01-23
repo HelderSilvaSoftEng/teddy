@@ -3,9 +3,6 @@ import { render as rtlRender, RenderOptions, RenderResult } from '@testing-libra
 import { BrowserRouter } from 'react-router-dom';
 import { ToastProvider } from '../presentation/contexts/toast.context';
 
-/**
- * Custom render function that includes common providers
- */
 interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
   route?: string;
 }

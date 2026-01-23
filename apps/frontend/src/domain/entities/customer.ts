@@ -1,4 +1,3 @@
-// Entidade Customer
 export class Customer {
   id!: string;
   userId!: string;
