@@ -1,0 +1,36 @@
+version: '3.9'
+
+services:
+  frontend:
+    build:
+      context: ../..
+      dockerfile: apps/frontend/Dockerfile
+    container_name: teddy_frontend_local
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    environment:
+      - VITE_API_URL=http://localhost:3000/api
+    networks:
+      - frontend-local
+    volumes:
+      - ../../apps/frontend/src:/app/apps/frontend/src
+
+  # Optional: Mock API para desenvolvimento sem backend
+  api-mock:
+    image: node:22-alpine
+    container_name: teddy_api_mock
+    working_dir: /app
+    command: npx json-server --watch db.json --port 3001 --host 0.0.0.0
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./mock-db.json:/app/db.json
+    networks:
+      - frontend-local
+    profiles:
+      - mock
+
+networks:
+  frontend-local:
+    driver: bridge

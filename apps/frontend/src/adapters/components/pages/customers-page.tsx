@@ -101,15 +101,24 @@ export function CustomersPage({ onOpenUserModal }: { onOpenUserModal?: () => voi
   const handleSelectCustomer = async (customer: Customer) => {
     try {
       const useCase = new UpdateCustomerUseCase(customerRepository);
-      const updatedCustomer = await useCase.execute(customer.id, { status: 'SELECTED' });
+      const newStatus = customer.status === 'SELECTED' ? 'ACTIVE' : 'SELECTED';
+      const updatedCustomer = await useCase.execute(customer.id, { status: newStatus });
       if (updatedCustomer) {
-        setCustomers((prev) =>
-          prev.filter((c) => c.id !== customer.id)
-        );
+        if (newStatus === 'SELECTED') {
+          setCustomers((prev) =>
+            prev.filter((c) => c.id !== customer.id)
+          );
+          setTotal((prev) => Math.max(0, prev - 1));
+          addToast(`Cliente "${customer.name}" adicionado aos selecionados!`, 'success');
+        } else {
+          loadCustomers(currentPage);
+          addToast(`Cliente "${customer.name}" removido dos selecionados!`, 'info');
+        }
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao selecionar cliente';
+      const message = err instanceof Error ? err.message : 'Erro ao alterar seleção do cliente';
       setError(message);
+      addToast(message, 'error');
     }
   };
 

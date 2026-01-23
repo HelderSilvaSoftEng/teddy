@@ -1,0 +1,62 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: ../..
+      dockerfile: apps/backend/Dockerfile
+    container_name: teddy_backend_local
+    restart: "no"
+    ports:
+      - "3000:3000"
+    env_file:
+      - ../../.env.docker
+    environment:
+      - NODE_ENV=development
+      - LOG_LEVEL=debug
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend-local
+    volumes:
+      - ../../apps/backend/src:/app/apps/backend/src
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: teddy_postgres_local
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-teddy_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_local:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-local
+
+  redis:
+    image: redis:7-alpine
+    container_name: teddy_redis_local
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-local
+
+volumes:
+  postgres_data_local:
+
+networks:
+  backend-local:
+    driver: bridge
