@@ -7,7 +7,6 @@ export async function runCustomersSeed(dataSource: DataSource): Promise<void> {
     const customerRepository = dataSource.getRepository(Customer);
     const userRepository = dataSource.getRepository(User);
 
-    // Find admin user
     const adminUser = await userRepository.findOne({
       where: { email: 'admin@teddy.com' },
     });
@@ -16,7 +15,6 @@ export async function runCustomersSeed(dataSource: DataSource): Promise<void> {
       return;
     }
 
-    // Check if customers already exist
     const existingCount = await customerRepository.count({
       where: { userId: adminUser.id },
     });
@@ -25,7 +23,6 @@ export async function runCustomersSeed(dataSource: DataSource): Promise<void> {
       return;
     }
 
-    // Customer data
     const customersData = [
       { name: 'João Silva', salary: 5500.00, company: 'Tech Solutions' },
       { name: 'Maria Santos', salary: 6200.00, company: 'Digital Innovations' },
@@ -59,7 +56,6 @@ export async function runCustomersSeed(dataSource: DataSource): Promise<void> {
       { name: 'Estela Ribeiro', salary: 6500.00, company: 'Marketing Plus' },
     ];
 
-    // Create customers
     const customers = customersData.map(data => 
       new Customer({
         ...data,

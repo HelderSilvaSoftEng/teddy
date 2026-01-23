@@ -1,4 +1,3 @@
-// Tipos de autenticação
 export interface ICurrentUser {
   id: string;
   email: string;
@@ -38,7 +37,6 @@ export interface IResetPasswordResponse {
   message: string;
 }
 
-// Tipos de paginação
 export interface IPaginationParams {
   skip?: number;
   take?: number;

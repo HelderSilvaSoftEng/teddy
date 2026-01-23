@@ -4,9 +4,6 @@ import { User } from '../../app/modules/users/domain/entities';
 import { Customer } from '../../app/modules/customers/domain/entities';
 import { AuditLog } from '../modules/audit/domain/entities';
 
-// Note: dotenv is already loaded in /src/dotenv.ts, imported in main.ts
-// No need to call dotenv.config() again here
-
 const logger = new Logger('TypeOrmConfig');
 
 export const typeormConfig: TypeOrmModuleOptions = {
@@ -22,10 +19,8 @@ export const typeormConfig: TypeOrmModuleOptions = {
   migrationsRun: false,
   logging: process.env.DB_LOGGING === 'true' || process.env.TYPEORM_LOGGING === 'true',
   logger: 'advanced-console',
-  // PostgreSQL SSL options - disabled for Docker dev environment
   ssl: process.env.NODE_ENV === 'production' ? true : false,
   extra: {
-    // Force disable SSL mode in connection string
     sslmode: 'disable',
   },
 };

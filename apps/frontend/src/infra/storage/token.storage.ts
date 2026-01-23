@@ -1,4 +1,3 @@
-// Storage de tokens
 export class TokenStorage {
   private readonly ACCESS_TOKEN_KEY = 'access_token';
   private readonly REFRESH_TOKEN_KEY = 'refresh_token';

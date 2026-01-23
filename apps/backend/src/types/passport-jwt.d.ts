@@ -1,8 +1,3 @@
-/**
- * Type declarations for passport-jwt
- * Resolves TypeScript errors for passport-jwt module
- */
-
 declare module 'passport-jwt' {
   import { Strategy as PassportStrategy } from 'passport';
   import { Request } from 'express';

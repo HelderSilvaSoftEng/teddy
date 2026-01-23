@@ -1,28 +1,22 @@
-import { ValidationPipe, INestApplication } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 
-// Load environment variables first, before any other imports
 import './dotenv';
 
 import { AppModule } from './app/app.module';
 import { LoggerService } from './common/services/logger';
-import { initializeTracing } from './app/telemetry';
 import { GlobalExceptionFilter, ValidationExceptionFilter } from './common/exceptions';
 
 async function bootstrap() {
   try {
     console.log('🚀 Starting bootstrap...');
-    
-    // SKIP OpenTelemetry for now to debug
-    // initializeTracing();
-    
-    console.log('📦 Creating NestFactory with VERBOSE logging...');
+    console.log('📦 Creating NestFactory...');
     let app;
     try {
       app = await NestFactory.create(AppModule, {
-        logger: ['debug', 'error', 'warn', 'log'],  // Enable ALL logging
+        logger: ['debug', 'error', 'warn', 'log'], 
       });
       console.log('✅ NestFactory created');
     } catch (factoryError) {
@@ -30,7 +24,6 @@ async function bootstrap() {
       throw factoryError;
     }
 
-    // Use LoggerService as global logger
     const loggerService = new LoggerService('NestJS');
     app.useLogger(loggerService);
     
@@ -55,13 +48,11 @@ async function bootstrap() {
       })
     );
 
-    // SKIP Filters for now to debug
-    // app.useGlobalFilters(
-    //   new ValidationExceptionFilter(),
-    //   new GlobalExceptionFilter(),
-    // );
+    app.useGlobalFilters(
+      new ValidationExceptionFilter(),
+      new GlobalExceptionFilter(),
+    );
 
-    // Swagger documentation
     const config = new DocumentBuilder()
       .setTitle('Desafio API')
       .setDescription('API REST for Client Management System')
@@ -89,7 +80,6 @@ async function bootstrap() {
 
     const port = process.env.PORT || 3000;
     
-    // Add timeout to ensure app doesn't hang
     const listenPromise = app.listen(port);
     const timeoutPromise = new Promise((_, reject) => 
       setTimeout(() => reject(new Error('App startup timeout after 30s')), 30000)

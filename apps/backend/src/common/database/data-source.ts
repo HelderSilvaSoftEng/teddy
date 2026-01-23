@@ -5,9 +5,6 @@ import { DataSource } from 'typeorm';
 import path from 'path';
 import { User } from '../../app/modules/users/domain/entities/user.entity';
 
-// Note: dotenv is already loaded in /src/dotenv.ts, imported in main.ts
-// No need to call dotenv.config() again here
-
 const isProduction = process.env.NODE_ENV === 'production';
 
 export const AppDataSource = new DataSource({
@@ -24,7 +21,6 @@ export const AppDataSource = new DataSource({
   logging: !isProduction,
   ssl: false,
   extra: {
-    // Force disable SSL mode in connection string
     sslmode: 'disable',
   },
 });

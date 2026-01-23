@@ -14,7 +14,6 @@ export class DatabaseModule implements OnModuleInit {
 
   async onModuleInit() {
     try {
-      // Wait for TypeORM to sync the database
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       if (this.dataSource.isInitialized) {

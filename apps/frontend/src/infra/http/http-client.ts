@@ -1,4 +1,3 @@
-// Configuração de API
 const API_BASE_URL = 'http://localhost:3000';
 
 export const API_CONFIG = {
@@ -24,7 +23,6 @@ export const API_CONFIG = {
   },
 };
 
-// Cliente HTTP simples
 export class HttpClient {
   private baseUrl: string;
 
